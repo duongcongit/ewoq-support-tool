@@ -1,0 +1,17 @@
+{
+    "name": "Auto count task",
+    "action": {
+        "default_icon": "./icon/icon.png"
+    },
+    "manifest_version": 3,
+    "version": "1.0",
+    "description": "",
+    "permissions": [
+        "activeTab",
+        "scripting",
+        "contextMenus"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    }
+}
