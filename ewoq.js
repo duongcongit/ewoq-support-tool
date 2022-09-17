@@ -10,7 +10,7 @@ window.onload = function () {
 
     }
 
-    // tf
+    // 
     function setClickListener() {
         let submitButton = document.getElementsByClassName("submitTaskButton")[0];
         if (submitButton != undefined) {
@@ -18,9 +18,7 @@ window.onload = function () {
             submitButton.addEventListener("click", click);
         }
     }
-
     setInterval(setClickListener, 10000)
-
 
 }
 
