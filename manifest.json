@@ -16,16 +16,8 @@
         "history",
         "webNavigation"
     ],
+    "options_page": "options.html",
     "content_scripts": [
-        {
-            "matches": [
-                "https://*.googbedfsbngle.com/*"
-            ],
-            "js": [
-                "./assets/js/jquery-3.6.1.min.js",
-                "options.js"
-            ]
-        },
         {
             "matches": [
                 "https://rating.ewoq.google.com/*"

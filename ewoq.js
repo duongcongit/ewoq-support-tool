@@ -4,16 +4,13 @@ console.log("Included")
 window.onload = function () {
     function click() {
         console.log("clicked")
-        chrome.storage.local.get(["mode"], function (items) {
-            if (items.mode == "auto") {
-                chrome.runtime.sendMessage({ "count": "true" }, function (response) {
-                    console.log(response)
-                });
-            }
-        })
+        chrome.runtime.sendMessage({ "count": "true" }, function (response) {
+            console.log(response)
+        });
+
     }
 
-    //
+    // tf
     function setClickListener() {
         let submitButton = document.getElementsByClassName("submitTaskButton")[0];
         if (submitButton != undefined) {
@@ -22,7 +19,7 @@ window.onload = function () {
         }
     }
 
-    setInterval(setClickListener, 2000)
+    setInterval(setClickListener, 1000)
 
 
 }
