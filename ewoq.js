@@ -19,7 +19,7 @@ window.onload = function () {
         }
     }
 
-    setInterval(setClickListener, 1000)
+    setInterval(setClickListener, 10000)
 
 
 }
