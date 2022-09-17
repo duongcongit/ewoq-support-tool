@@ -1,12 +1,18 @@
-var current = 0;
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // Count
     if (Object.getOwnPropertyNames(request) == "count") {
         if (request.count == "true") {
-            current++;
-            chrome.storage.local.set({ current: current.toString() });
-            chrome.action.setBadgeText({ text: current.toString() });
+            chrome.storage.local.get(["current"], function (items) {
+                let current = 0;
+                if (items.current != undefined) {
+                    current = parseInt(items.current);
+                }
+                current++;
+                chrome.action.setBadgeText({ text: current.toString() });
+                chrome.storage.local.set({ current: current.toString() });
+            });
+
             updateLastClick();
             sendResponse("Have counted");
         }
@@ -55,7 +61,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
 });
 
-
+// Get current time
 function getCurrentTime() {
     let currentdate = new Date();
     let currentTime =
@@ -74,6 +80,7 @@ function getCurrentTime() {
     return currentTime;
 }
 
+// Function update last click time
 function updateLastClick() {
     let lastClickTime = getCurrentTime();
     chrome.storage.local.set({ lastClick: lastClickTime });
@@ -109,12 +116,10 @@ function updateLastClick() {
 setTimeout(function () {
     chrome.storage.local.get(["current"], function (items) {
         if (items.current != undefined) {
-            current = parseInt(items.current);
             chrome.action.setBadgeText({ text: items.current });
         }
         else {
-            current = 0;
-            chrome.action.setBadgeText({ text: current.toString() });
+            chrome.action.setBadgeText({ text: "0" });
         }
     });
 
@@ -127,9 +132,7 @@ setTimeout(function () {
 
 }, 500)
 
-
-
-// Context menu click
+// Context menu create
 chrome.contextMenus.removeAll(function () {
     // 1
     chrome.contextMenus.create({
@@ -153,16 +156,18 @@ chrome.contextMenus.removeAll(function () {
     });
 
     // 4
-    chrome.storage.local.get(["lastClick"], function (items) {
-        chrome.contextMenus.create({
-            id: "4",
-            title: "Last click: " + items.lastClick,
-            contexts: ["all"],
-        });
-
+    chrome.contextMenus.create({
+        id: "4",
+        title: "Last click: ",
+        contexts: ["all"],
     });
 
-
+    //
+    chrome.storage.local.get(["lastClick"], function (items) {
+        chrome.contextMenus.update("4", {
+            title: ("Last click: " + items.lastClick)
+        });
+    });
 
     // 5
     chrome.contextMenus.create({
@@ -170,57 +175,63 @@ chrome.contextMenus.removeAll(function () {
         title: "Options",
         contexts: ["all"],
     });
+
+
 });
 
-chrome.tabs.onActivated.addListener(function (activeInfo) {
-    // console.log(activeInfo.tabId);
-});
-
-//
+// Context menu click event
 chrome.contextMenus.onClicked.addListener(function (id, tab) {
     //
     if (id.menuItemId == 1) {
         chrome.storage.local.get(["mode"], function (items) {
-            if (items.mode == "null" || items.mode == "manual") {
-                chrome.action.setIcon({ path: "/icon/icon_auto.png" });
-                // mode = "auto";
-                chrome.storage.local.set({ "mode": "auto" });
-                chrome.contextMenus.update("1", {
-                    title: "Switch to Manual mode"
-                });
-            }
-            else if (items.mode == "auto") {
-                // mode = "manual";
+            if (items.mode == "auto") {
                 chrome.storage.local.set({ "mode": "manual" });
                 chrome.contextMenus.update("1", {
                     title: "Switch to Auto mode (only available for EWOQ page)"
                 });
                 chrome.action.setIcon({ path: "./icon/icon_manual.png" });
             }
+            else {
+                chrome.action.setIcon({ path: "/icon/icon_auto.png" });
+                chrome.storage.local.set({ "mode": "auto" });
+                chrome.contextMenus.update("1", {
+                    title: "Switch to Manual mode"
+                });
+            }
         });
 
     }
     if (id.menuItemId == 2) {
-        // current--;
-        // chrome.storage.local.set({ current: current.toString() });
-        // chrome.action.setBadgeText({ text: current.toString() });
-        chrome.storage.local.get(["mode"], function (items) {
-            console.log(items.mode)
-        });
+        chrome.storage.local.set({ current: current.toString() });
+        chrome.action.setBadgeText({ text: current.toString() });
     }
     if (id.menuItemId == 3) {
         current = 0;
-        chrome.storage.local.set({ current: current.toString() });
-        chrome.action.setBadgeText({ text: current.toString() });
+        chrome.storage.local.set({ current: "0" });
+        chrome.action.setBadgeText({ text: "0" });
     }
     if (id.menuItemId == 5) {
         chrome.tabs.create({ url: "/options.html" });
     }
 });
 
+// On change tabs
+chrome.tabs.onActivated.addListener(function (activeInfo) {
+    // console.log(activeInfo.tabId);
+});
+
+// Increase counter when click to extensions icon
 chrome.action.onClicked.addListener((tab) => {
-    current = current + 1;
-    chrome.action.setBadgeText({ text: current.toString() });
-    chrome.storage.local.set({ current: current.toString() });
+    chrome.storage.local.get(["current"], function (items) {
+        let current = 0;
+        if (items.current != undefined) {
+            current = parseInt(items.current);
+        }
+        current++;
+        chrome.action.setBadgeText({ text: current.toString() });
+        chrome.storage.local.set({ current: current.toString() });
+
+    });
+
     updateLastClick();
 });

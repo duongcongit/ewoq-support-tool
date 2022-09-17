@@ -22,13 +22,13 @@
                 "https://*.googbedfsbngle.com/*"
             ],
             "js": [
-                "jquery-3.6.1.min.js",
+                "./assets/js/jquery-3.6.1.min.js",
                 "options.js"
             ]
         },
         {
             "matches": [
-                "file:///media/duongcong/Data/Cong/Web/test/index.html"
+                "https://rating.ewoq.google.com/*"
             ],
             "js": [
                 "ewoq.js"
