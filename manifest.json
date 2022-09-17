@@ -1,7 +1,7 @@
 {
     "name": "Auto count task",
     "action": {
-        "default_icon": "./icon/icon.png"
+        "default_icon": "./icon/icon_manual.png"
     },
     "manifest_version": 3,
     "version": "1.0",
@@ -9,7 +9,37 @@
     "permissions": [
         "activeTab",
         "scripting",
-        "contextMenus"
+        "contextMenus",
+        "storage",
+        "tabs",
+        "alarms",
+        "history",
+        "webNavigation"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "https://*.googbedfsbngle.com/*"
+            ],
+            "js": [
+                "jquery-3.6.1.min.js",
+                "options.js"
+            ]
+        },
+        {
+            "matches": [
+                "file:///media/duongcong/Data/Cong/Web/test/index.html"
+            ],
+            "js": [
+                "ewoq.js"
+            ]
+        }
+    ],
+    "host_permissions": [
+        "http://*/*",
+        "https://*/*",
+        "*://*/*",
+        "<all_urls>"
     ],
     "background": {
         "service_worker": "background.js"
