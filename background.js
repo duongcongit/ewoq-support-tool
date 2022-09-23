@@ -1,8 +1,19 @@
+chrome.runtime.onInstalled.addListener(function () {
+    chrome.storage.local.set({ "mode": "manual" });
+    chrome.storage.local.set({ "countTaskTime": "OFF" });
+    chrome.storage.local.set({ "autoSubmit": "OFF" });
+    chrome.storage.local.set({ "autoSubmitAfter": "30" });
+    chrome.storage.local.set({ "showAutoSubmitAlertWhileRemaining": "25" });
+})
+
+chrome.runtime.onStartup.addListener(function () {
+    chrome.storage.local.set({ "mode": "manual" });
+})
 
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    // Count
-    if (Object.getOwnPropertyNames(request) == "count") {
-        if (request.count == "true") {
+    // Auto mode count
+    if (Object.getOwnPropertyNames(request) == "autoCount") {
+        if (request.autoCount == "true") {
             chrome.storage.local.get(["mode"], function (items) {
                 if (items.mode == "auto") {
                     chrome.storage.local.get(["current"], function (items) {
@@ -13,15 +24,88 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                         current++;
                         chrome.action.setBadgeText({ text: current.toString() });
                         chrome.storage.local.set({ current: current.toString() });
+                        sendResponse(current);
+
+                    });
+                    sendResponse(current);
+                }
+                else {
+                    chrome.storage.local.get(["autoSubmit"], function (items) {
+                        if (items.autoSubmit == "ON") {
+                            chrome.storage.local.get(["current"], function (items) {
+                                let current = 0;
+                                if (items.current != undefined) {
+                                    current = parseInt(items.current);
+                                }
+                                current++;
+                                chrome.action.setBadgeText({ text: current.toString() });
+                                chrome.storage.local.set({ current: current.toString() });
+                                sendResponse(current);
+
+                            });
+                            sendResponse(current);
+                        }
+                        else {
+                            sendResponse("Not auto");
+                        }
                     });
                 }
             });
 
-
             updateLastClick();
-            sendResponse("Have counted");
+            return true;
         }
+
     }
+
+    // Get count task time mode
+    if (Object.getOwnPropertyNames(request) == "getCountTaskTimeMode") {
+        if (request.getCountTaskTimeMode == "true") {
+
+            chrome.storage.local.get(["countTaskTime"], function (items) {
+                sendResponse(items.countTaskTime);
+            });
+        }
+        return true;
+
+    }
+
+    // Get auto submit mode
+    if (Object.getOwnPropertyNames(request) == "getAutoSubmitMode") {
+        if (request.getAutoSubmitMode == "true") {
+
+            chrome.storage.local.get(["autoSubmit"], function (items) {
+                sendResponse(items.autoSubmit);
+            });
+        }
+        return true;
+
+    }
+
+    // Get time auto submit after
+    if (Object.getOwnPropertyNames(request) == "getAutoSubmitAfter") {
+        if (request.getAutoSubmitAfter == "true") {
+
+            chrome.storage.local.get(["autoSubmitAfter"], function (items) {
+                sendResponse(items.autoSubmitAfter);
+            });
+        }
+        return true;
+
+    }
+
+    // Get show auto submit alert while remaining
+    if (Object.getOwnPropertyNames(request) == "showAutoSubmitAlertWhileRemaining") {
+        if (request.showAutoSubmitAlertWhileRemaining == "true") {
+
+            chrome.storage.local.get(["showAutoSubmitAlertWhileRemaining"], function (items) {
+                sendResponse(items.showAutoSubmitAlertWhileRemaining);
+            });
+        }
+        return true;
+
+    }
+
 
     // Switch auto mode
     if (Object.getOwnPropertyNames(request) == "switchAutoMode") {
@@ -64,17 +148,10 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         sendResponse("Set new total click to " + current + " successfully");
     }
 
-
 });
 
 //
-chrome.runtime.onStartup.addListener(function(){
-    chrome.storage.local.set({ "mode": "manual" });
-})
 
-chrome.runtime.onInstalled.addListener(function(){
-    chrome.storage.local.set({ "mode": "manual" });
-})
 
 // Get current time
 function getCurrentTime() {
@@ -99,7 +176,7 @@ function getCurrentTime() {
 function updateLastClick() {
     let lastClickTime = getCurrentTime();
     chrome.storage.local.set({ lastClick: lastClickTime });
-    chrome.contextMenus.update("4", {
+    chrome.contextMenus.update("6", {
         title: "Last click: " + lastClickTime,
     });
     //
@@ -160,7 +237,7 @@ setTimeout(function () {
 
     // Update last click
     chrome.storage.local.get(["lastClick"], function (items) {
-        chrome.contextMenus.update("4", {
+        chrome.contextMenus.update("6", {
             title: ("Last click: " + items.lastClick)
         });
     });
@@ -193,16 +270,45 @@ chrome.contextMenus.removeAll(function () {
     // 4
     chrome.contextMenus.create({
         id: "4",
+        title: "Count task time: OFF",
+        contexts: ["all"],
+    });
+
+    // 5
+    chrome.contextMenus.create({
+        id: "5",
+        title: "Auto submit: OFF",
+        contexts: ["all"],
+    });
+
+    // 6
+    chrome.contextMenus.create({
+        id: "6",
         title: "Last click: ",
         contexts: ["all"],
     });
 
     //
     chrome.storage.local.get(["lastClick"], function (items) {
-        chrome.contextMenus.update("4", {
+        chrome.contextMenus.update("6", {
             title: ("Last click: " + items.lastClick)
         });
     });
+
+    // 7
+    chrome.contextMenus.create({
+        id: "7",
+        title: "User guide",
+        contexts: ["all"],
+    });
+
+    // 8
+    chrome.contextMenus.create({
+        id: "8",
+        title: "Develop by: duongcongit",
+        contexts: ["all"],
+    });
+
 });
 
 // Context menu click event
@@ -230,9 +336,13 @@ chrome.contextMenus.onClicked.addListener(function (id, tab) {
     }
     if (id.menuItemId == 2) {
         chrome.storage.local.get(["current"], function (items) {
-            let current = parseInt(items.current) - 1;
-            chrome.storage.local.set({ current: current.toString() });
-            chrome.action.setBadgeText({ text: current.toString() });
+            let current = parseInt(items.current);
+            if (current > 0) {
+                current = current - 1;
+                chrome.storage.local.set({ current: current.toString() });
+                chrome.action.setBadgeText({ text: current.toString() });
+            }
+
         });
 
     }
@@ -240,6 +350,43 @@ chrome.contextMenus.onClicked.addListener(function (id, tab) {
         current = 0;
         chrome.storage.local.set({ current: "0" });
         chrome.action.setBadgeText({ text: "0" });
+    }
+    if (id.menuItemId == 4) {
+        chrome.storage.local.get(["countTaskTime"], function (items) {
+            if (items.countTaskTime == "OFF") {
+                chrome.storage.local.set({ "countTaskTime": "ON" });
+                chrome.contextMenus.update("4", {
+                    title: ("Count task time: ON")
+                });
+            }
+            else {
+                chrome.storage.local.set({ "countTaskTime": "OFF" });
+                chrome.contextMenus.update("4", {
+                    title: ("Count task time: OFF")
+                });
+            }
+        });
+
+    }
+    if (id.menuItemId == 5) {
+        chrome.storage.local.get(["autoSubmit"], function (items) {
+            if (items.autoSubmit == "OFF") {
+                chrome.storage.local.set({ "autoSubmit": "ON" });
+                chrome.contextMenus.update("5", {
+                    title: ("Auto submit: ON")
+                });
+            }
+            else {
+                chrome.storage.local.set({ "autoSubmit": "OFF" });
+                chrome.contextMenus.update("5", {
+                    title: ("Auto submit: OFF")
+                });
+            }
+        });
+
+    }
+    if (id.menuItemId == 7) {
+        chrome.tabs.create({ url: "USERGUIDE.html" });
     }
 });
 

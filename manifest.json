@@ -1,10 +1,10 @@
 {
-    "name": "Auto count task",
+    "name": "EWOQ support tool",
     "action": {
         "default_icon": "./icon/icon_manual.png"
     },
     "manifest_version": 3,
-    "version": "1.0",
+    "version": "2.0",
     "description": "",
     "permissions": [
         "activeTab",
@@ -20,7 +20,12 @@
     "content_scripts": [
         {
             "matches": [
-                "https://rating.ewoq.google.com/*"
+                "https://rating.ewoq.google.com/*",
+                "file:///media/duongcong/Data/Cong/Web/auto-count-extension/test.html",
+                "http://127.0.0.1:5500/test.html"
+            ],
+            "css": [
+                "./assets/css/count-notify.css"
             ],
             "js": [
                 "ewoq.js"
