@@ -14,7 +14,8 @@
         "tabs",
         "alarms",
         "history",
-        "webNavigation"
+        "webNavigation",
+        "notifications"
     ],
     "options_page": "options.html",
     "content_scripts": [
@@ -28,7 +29,7 @@
                 "./assets/css/count-notify.css"
             ],
             "js": [
-                "ewoq.js"
+                "test.js"
             ]
         }
     ],
@@ -40,5 +41,13 @@
     ],
     "background": {
         "service_worker": "background.js"
-    }
+    },
+    "web_accessible_resources": [
+        {
+          "resources": [ 
+            "/res/sounds/*.mp3"
+          ],
+          "matches": [ "<all_urls>" ]
+        }
+    ]    
 }
