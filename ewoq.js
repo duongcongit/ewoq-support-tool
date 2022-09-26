@@ -2,10 +2,12 @@
 console.log("Included")
 
 window.onload = function () {
+    console.log("OJIsvd");
+
 
     var taskTimeCounter = 1;
 
-    let headerContainer = document.getElementsByClassName("dense-header")[0];
+    var headerContainer = document.getElementsByClassName("dense-header")[0];
 
     // Function convert time
     const convertSecondToMinute = (second) => {
@@ -22,9 +24,9 @@ window.onload = function () {
         }
     }
 
+
     const submitButtonClick = () => {
         chrome.runtime.sendMessage({ "autoCount": "true" }, (response) => {
-            // let container = document.getElementsByClassName("dense-header")[0];
 
             if (response != "Not auto") {
                 let alertClick = document.createElement("div");
@@ -38,8 +40,6 @@ window.onload = function () {
                 console.log(response);
             }
         });
-
-
 
         // Check new task on submit and show time counter if is enabled
         removeTaskTimeCounter();
@@ -75,22 +75,22 @@ window.onload = function () {
             submitButton.removeEventListener("click", submitButtonClick);
             submitButton.addEventListener("click", submitButtonClick);
         }
+
     }
     //
     setInterval(setClickListener, 2000);
 
 
-    // Function show time counter
+    // =============== Function show time counter ==============
     // console.log(document.body.contains(btnSubmit));
     // btnSubmit.remove();
     const showTaskTimeCounter = () => {
+        removeTaskTimeCounter();
         chrome.runtime.sendMessage({ "getCountTaskTimeMode": "true" }, (response) => {
-            if (response == "ON") {
+            if (response == true) {
                 let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
-                if (document.body.contains(btnSubmit)) {
-
-                    // let oldTaskTime = document.getElementById("task-time");
-
+                let continueButton = document.getElementsByClassName("continue-button")[0];
+                if (document.body.contains(btnSubmit) || document.body.contains(continueButton)) {
 
                     let taskTime = document.createElement("div");
                     let taskTimeContent = '<div id="task-time">'
@@ -118,8 +118,6 @@ window.onload = function () {
 
     }
 
-
-
     // Remove Time counter
     const removeTaskTimeCounter = () => {
         let taskTime = document.getElementById("task-time");
@@ -130,30 +128,31 @@ window.onload = function () {
     }
 
 
-    // ======== Check new task ===========
-
+    // ======== Count time when start new task ===========
     // On click START NEXT TASK button
     const startButtonClick = () => {
 
         let startButton = document.getElementsByClassName("start-button")[0];
         let submitButton = document.getElementsByClassName("submitTaskButton")[0];
+        let continueButton = document.getElementsByClassName("continue-button")[0];
 
-        if (submitButton != null && startButton == null) {
+        if (submitButton != null || continueButton != null) {
             showTaskTimeCounter();
         }
         else {
             let time = 1;
-            let checkSubmitButtonInterval = setInterval(() => {
+            let checkSubmitContinueButtonIntv = setInterval(() => {
                 let startButton = document.getElementsByClassName("start-button")[0];
                 let submitButton = document.getElementsByClassName("submitTaskButton")[0];
+                let continueButton = document.getElementsByClassName("continue-button")[0];
                 if (time <= 15) {
-                    if (submitButton != null && startButton == null) {
+                    if (submitButton != null || continueButton != null) {
                         showTaskTimeCounter();
-                        clearInterval(checkSubmitButtonInterval);
+                        clearInterval(checkSubmitContinueButtonIntv);
                     }
                 }
                 else {
-                    clearInterval(checkSubmitButtonInterval);
+                    clearInterval(checkSubmitContinueButtonIntv);
                 }
                 console.log(time);
                 time++;
@@ -173,15 +172,13 @@ window.onload = function () {
         }
     }, 2000)
 
-
-
     // On click Continue button
     const continueButtonClick = () => {
 
         let btnContinue = document.getElementsByClassName("continue-button")[0];
         let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
 
-        if (btnSubmit != null && btnContinue == null) {
+        if (btnSubmit != null) {
             showTaskTimeCounter();
         }
         else {
@@ -189,8 +186,8 @@ window.onload = function () {
             let checkSubmitButtonInterval = setInterval(() => {
                 let btnContinue = document.getElementsByClassName("continue-button")[0];
                 let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
-                if (time <= 10) {
-                    if (btnSubmit != null && btnContinue == null) {
+                if (time <= 15) {
+                    if (btnSubmit != null) {
                         showTaskTimeCounter();
                         clearInterval(checkSubmitButtonInterval);
                     }
@@ -214,39 +211,37 @@ window.onload = function () {
         }
     }, 2000)
 
-
-
     // On Skip task button
     const skipTaskButtonClick = () => {
 
         removeTaskTimeCounter();
 
-        document.getElementsByClassName("cancel-button")[0].remove();
+        setTimeout(() => {
+            let skipTaskButton = document.getElementsByClassName("cancel-button")[0];
+            let submitButton = document.getElementsByClassName("submitTaskButton")[0];
 
-        let skipTaskButton = document.getElementsByClassName("cancel-button")[0];
-        let submitButton = document.getElementsByClassName("submitTaskButton")[0];
-
-        if (submitButton != null && skipTaskButton == null) {
-            showTaskTimeCounter();
-        }
-        else {
-            let time = 1;
-            let checkSubmitButtonInterval = setInterval(() => {
-                let skipTaskButton = document.getElementsByClassName("cancel-button")[0];
-                let submitButton = document.getElementsByClassName("submitTaskButton")[0];
-                if (time <= 15) {
-                    if (submitButton != null && skipTaskButton == null) {
-                        showTaskTimeCounter();
+            if (submitButton != null && skipTaskButton == null) {
+                showTaskTimeCounter();
+            }
+            else {
+                let time = 1;
+                let checkSubmitButtonInterval = setInterval(() => {
+                    let skipTaskButton = document.getElementsByClassName("cancel-button")[0];
+                    let submitButton = document.getElementsByClassName("submitTaskButton")[0];
+                    if (time <= 15) {
+                        if (submitButton != null && skipTaskButton == null) {
+                            showTaskTimeCounter();
+                            clearInterval(checkSubmitButtonInterval);
+                        }
+                    }
+                    else {
                         clearInterval(checkSubmitButtonInterval);
                     }
-                }
-                else {
-                    clearInterval(checkSubmitButtonInterval);
-                }
-                // console.log(time);
-                time++;
-            }, 1000);
-        }
+                    // console.log(time);
+                    time++;
+                }, 1000);
+            }
+        }, 1000)
 
     }
 
@@ -259,6 +254,7 @@ window.onload = function () {
         }
     }, 2000)
 
+
     // On load/reload page
     const checkNewTaskOnReload = () => {
         let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
@@ -269,7 +265,7 @@ window.onload = function () {
             let time = 1;
             let checkSubmitButtonInterval = setInterval(() => {
                 let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
-                if (time <= 5) {
+                if (time <= 7) {
                     if (btnSubmit != null) {
                         showTaskTimeCounter();
                         clearInterval(checkSubmitButtonInterval);
@@ -285,6 +281,115 @@ window.onload = function () {
     }
 
     checkNewTaskOnReload();
+
+
+
+    // ======================= Task available notification ==============
+    var isNotiSoundPlaying = false;
+    var isNotiShowing = false;
+    var notiCountdown = 0;
+    setInterval(() => {
+        let btnstart = document.getElementsByClassName("start-button")[0];
+        if (btnstart != null) {
+            if (!btnstart.disabled && isNotiShowing == false && notiCountdown == 0) {
+                // Send noti to system
+                chrome.runtime.sendMessage({ "createAvalableTaskNoiti": "true" }, (response) => { })
+
+                let notiBox = document.createElement("div");
+                notiBox.innerHTML = '<div class="dismiss-task-avail-noti-box">'
+                    + '<div>'
+                    + '<p style="margin: 5px; display: inline;color: white; font-size: large;font-weight: 900;">Attention</p>'
+                    + '<br>'
+                    + '<p style="margin: 5px; display: inline;color: white;">Task available</p>'
+                    + '<br>'
+                    + '<button id="btn-dismiss-task-avail-noti-box">'
+                    + '<span class="bfirst"></span>'
+                    + '<span class="blast"></span>'
+                    + '</button>'
+                    + '</div>'
+                    + '</div>';
+
+                headerContainer.appendChild(notiBox);
+
+                let btnCancel = document.getElementById("btn-dismiss-task-avail-noti-box");
+                btnCancel.addEventListener("click", () => {
+                    headerContainer.removeChild(notiBox);
+                    isNotiShowing = false;
+                    isNotiSoundPlaying = false;
+                    audioElement.pause();
+                    notiCountdown = 120; // Stop
+                    setInterval(() => {
+                        notiCountdown--;
+                    }, 1000)
+                })
+
+                //
+
+                chrome.runtime.sendMessage({ "taskAvailableNotiSound": "true" }, (response) => {
+                    if (response == true) {
+                        if (!isNotiSoundPlaying) {
+                            chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, (response) => {
+                                let soundUrl = response;
+                                audioElement = document.createElement('audio');
+                                audioElement.innerHTML = '<source src="' + soundUrl + '" type="audio/mpeg" />'
+                                audioElement.play();
+
+                                chrome.runtime.sendMessage({ "getTaskAvailableLoopNoti": "true" }, (response) => {
+                                    let loopMode = response;
+                                    if (loopMode) {
+                                        audioElement.loop = true;
+                                    }
+                                    else {
+                                        audioElement.loop = false;
+                                    }
+                                })
+                                //
+                            })
+                            isNotiSoundPlaying = true;
+
+                        }
+
+                    }
+                })
+
+                isNotiShowing = true;
+
+
+            }
+        }
+        if(btnstart.disabled) {
+            let notiBox = document.getElementsByClassName("dismiss-task-avail-noti-box")[0];
+            if (notiBox != null) {
+                notiBox.remove();
+                audioElement.pause();
+                isNotiShowing = false;
+                isNotiSoundPlaying = false;
+            }
+        }
+    }, 2000)
+
+
+    document.body.addEventListener("click", () => {
+        let tans = document.getElementsByClassName("task-avail-noti-click-sound-box")[0];
+        if (tans != null) {
+            tans.remove();
+        }
+    })
+
+    chrome.runtime.sendMessage({ "taskAvailableNotiSound": "true" }, (response) => {
+        if (response == true) {
+            let bx = document.createElement("div");
+            bx.innerHTML = '<div class="task-avail-noti-click-sound-box">'
+                + '<div>'
+                + '<p style="margin: 5px; display: inline;color: white; font-size: large;font-weight: 900;">Cảnh báo âm thanh đang bật !!!! <br>Nhấn 1 lần vào bất cứ nơi nào <br> trên trang để có thể phát âm thanh</p>'
+                + '</div>'
+                + '</div>';
+
+            headerContainer.appendChild(bx);
+        }
+    })
+
+
 
 
 

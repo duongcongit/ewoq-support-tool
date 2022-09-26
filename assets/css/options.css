@@ -1,3 +1,7 @@
+body{
+    background-color: rgb(231, 231, 231);
+}
+
 .header{
     background-color: aquamarine;
 }
@@ -5,3 +9,10 @@
 .list-settings{
     list-style-type: none;
 }
+
+.setting-items{
+    border-radius: 10px;
+}
+
+/*  */
+
