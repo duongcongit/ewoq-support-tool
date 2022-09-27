@@ -1,4 +1,18 @@
+
+const SHODAN_API = "iVaixJbnxaPBeJhuQHTM6Sn7kyOMQ5xJ";
+
+
 chrome.runtime.onInstalled.addListener(function (reason) {
+
+    let exitsNotiSound = [];
+    exitsNotiSound.push(["Bell ringing 1", "bell-ringing-1.mp3"]);
+    exitsNotiSound.push(["Bell ringing 2", "bell-ringing-2.mp3"]);
+    exitsNotiSound.push(["Iphone", "iphone.mp3"]);
+    exitsNotiSound.push(["Iphone Notification", "iphone_notification.mp3"]);
+    exitsNotiSound.push(["Old telephone ring", "old-telephone-ring.mp3"]);
+    exitsNotiSound.push(["Phone off hook", "phone-off-hook.mp3"]);
+    exitsNotiSound.push(["Telephone ring", "telephone-ring.mp3"]);
+    exitsNotiSound.push(["Vintage telephone ringtone", "vintage-telephone-ringtone.mp3"]);
 
     if (reason.reason == "install") {
         chrome.storage.local.set({
@@ -11,11 +25,15 @@ chrome.runtime.onInstalled.addListener(function (reason) {
             "autoSubmit": false,
             "autoSubmitAfter": 120,
             "showAutoSubmitWhileRemaining": 90,
+            "alertVPNDisconnected": false,
             "taskAvailableNoti": false,
             "taskAvailableNotiTitle": "Attention",
             "taskAvailableNotiContent": "Task available!",
             "taskAvailableNotiSound": false,
-            "taskAvailableNotiSoundName": "sound-default.mp3",
+            "taskAvailableNotiSoundFileName": "vintage-telephone-ringtone.mp3",
+            "taskAvailNotiSoundCustom": false,
+            "soundExists": exitsNotiSound,
+            "soundCustoms": [],
             "taskAvailableLoopNoti": true,
         });
     }
@@ -23,6 +41,7 @@ chrome.runtime.onInstalled.addListener(function (reason) {
 })
 // On start up
 chrome.runtime.onStartup.addListener(function () {
+
 })
 
 const isUrlFound = async (url) => {
@@ -40,8 +59,59 @@ const isUrlFound = async (url) => {
     }
 }
 
+
+
+// setTimeout(() => {
+//     let ip = "31.171.154.220";
+//     fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
+//         .then((response) => response.json())
+//         .then((data) => {
+//             // chrome.storage.local.set({
+//             //     "currentIpAddr": data.ipAddress,
+//             // });
+//             let tags = data.tags;
+//             let host = JSON.stringify(data.data[0].http.host);
+//             console.log("Tags: " + tags);
+//             console.log("IP: " + host);
+//             if(tags == "vpn"){
+//                 console.log("VPN")
+//             }
+//         });
+// }, 100)
+
 // Message listener
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+
+    // Alert VPN disconnected mode
+    if (Object.getOwnPropertyNames(request) == "getAlertVPNDisMode") {
+        chrome.storage.local.get(["alertVPNDisconnected"], function (items) {
+            sendResponse(items.alertVPNDisconnected);
+        });
+        return true;
+    }
+
+
+    // Check VPN
+    if (Object.getOwnPropertyNames(request) == "checkVPN") {
+
+        fetch('http://ip-api.com/json')
+            .then((response) => response.json())
+            .then((data) => {
+                let ip = data.query;
+                fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        let tags = data.tags;
+                        // let host = JSON.stringify(data.data[0].http.host);
+                        // console.log("Tags: " + tags);
+                        // console.log("IP: " + host);
+                        sendResponse(tags);
+                    });
+            });
+
+        return true;
+    }
+
     // Auto count
     if (Object.getOwnPropertyNames(request) == "autoCount") {
         if (request.autoCount == "true") {
@@ -104,26 +174,34 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (Object.getOwnPropertyNames(request) == "getResFile") {
         if (request.getResFile == "taskAvailableNotiSound") {
 
-            chrome.storage.local.get(["taskAvailableNotiSoundName"], async function (items) {
-                let soundUrl = chrome.runtime.getURL("res/sounds/" + items.taskAvailableNotiSoundName);
-                let isFileExists = await isUrlFound(soundUrl);
-                if (!isFileExists) {
-                    soundUrl = chrome.runtime.getURL("res/sounds/sound-default.mp3");
-                    isFileExists = await isUrlFound(soundUrl);
+            chrome.storage.local.get(["taskAvailableNotiSoundFileName"], async function (items) {
+                let fileName = items.taskAvailableNotiSoundFileName;
+                chrome.storage.local.get(["taskAvailNotiSoundCustom"], async function (items) {
+                    let soundUrl = "";
+                    if (items.taskAvailNotiSoundCustom == false) {
+                        soundUrl = chrome.runtime.getURL("res/sounds/" + fileName);
+                    } else {
+                        soundUrl = chrome.runtime.getURL("res/sounds/customs/" + fileName);
+                    }
+                    //
+                    let isFileExists = await isUrlFound(soundUrl);
                     if (!isFileExists) {
-                        // https://.... sound source
-                        soundUrl = "...";
+                        soundUrl = chrome.runtime.getURL("res/sounds/sound-default.mp3");
                         isFileExists = await isUrlFound(soundUrl);
-                        sendResponse(soundUrl);
+                        if (!isFileExists) {
+                            // https://.... sound source
+                            soundUrl = "...";
+                            isFileExists = await isUrlFound(soundUrl);
+                            sendResponse(soundUrl);
+                        }
+                        else {
+                            sendResponse(soundUrl);
+                        }
                     }
                     else {
                         sendResponse(soundUrl);
                     }
-                }
-                else {
-                    sendResponse(soundUrl);
-                }
-
+                });
 
             });
         }
@@ -131,7 +209,31 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     }
 
-    
+    // Check custom sound file
+    if (Object.getOwnPropertyNames(request) == "checkCustomSoundFile") {
+        let a = async () => {
+            let soundUrl = chrome.runtime.getURL("res/sounds/customs/" + request.checkCustomSoundFile);
+            let isFileExists = await isUrlFound(soundUrl);
+            sendResponse(isFileExists);
+        }
+        a();
+        return true;
+
+    }
+
+
+    // Get tast avail noti mode
+    if (Object.getOwnPropertyNames(request) == "taskAvailableNoti") {
+        if (request.taskAvailableNoti == "true") {
+
+            chrome.storage.local.get(["taskAvailableNoti"], function (items) {
+                sendResponse(items.taskAvailableNoti);
+            });
+        }
+        return true;
+
+    }
+
     // Get tast available noti sound
     if (Object.getOwnPropertyNames(request) == "taskAvailableNotiSound") {
         chrome.storage.local.get(["taskAvailableNotiSound"], (items) => {
@@ -279,6 +381,22 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     }
 
+    // Switch alert VPN disconnect
+    if (Object.getOwnPropertyNames(request) == "switchAlertVPNDisMode") {
+        // Turm on
+        if (request.switchAlertVPNDisMode == "turn on") {
+            chrome.storage.local.set({ "alertVPNDisconnected": true });
+            sendResponse("Turn on VPN disconnect mode");
+        }
+        // Turn off
+        else {
+            chrome.storage.local.set({ "alertVPNDisconnected": false });
+            sendResponse("Turn off VPN disconnect mode");
+        }
+        return true;
+
+    }
+
 
     // Switch task avail noti
     if (Object.getOwnPropertyNames(request) == "switchTaskAvailableNoti") {
@@ -313,6 +431,14 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     }
 
     // Set total click
+    if (Object.getOwnPropertyNames(request) == "setTotalClick") {
+        let totalClick = parseInt(request.setTotalClick);
+        chrome.storage.local.set({ totalClick: totalClick });
+        chrome.action.setBadgeText({ text: totalClick.toString() });
+        sendResponse("Set new total click to " + totalClick + " successfully");
+    }
+
+    // Set check network status
     if (Object.getOwnPropertyNames(request) == "setTotalClick") {
         let totalClick = parseInt(request.setTotalClick);
         chrome.storage.local.set({ totalClick: totalClick });
@@ -397,7 +523,7 @@ setTimeout(function () {
         chrome.contextMenus.update("3", {
             title: "Auto count: " + autoCount,
         });
-        chrome.action.setIcon({ path: autoCountIcon});
+        chrome.action.setIcon({ path: autoCountIcon });
         // 4. Count time
         chrome.contextMenus.update("4", {
             title: "Count time: " + countTime,
@@ -414,6 +540,48 @@ setTimeout(function () {
         chrome.contextMenus.update("7", {
             title: "Last click: " + lastClick,
         });
+    });
+
+    // Check lis sound custom
+    chrome.storage.local.get(["soundCustoms", "taskAvailableNotiSoundFileName", "taskAvailNotiSoundCustom"], async function (items) {
+        let currentFileName = items.taskAvailableNotiSoundFileName;
+        let oldList = items.soundCustoms;
+        let newList = [];
+        let cond1 = false;
+        let cond2 = false;
+        for (let i = 0; i < oldList.length; i++) {
+            let fileName = oldList[i][1];
+            let fileUrl = chrome.runtime.getURL("res/sounds/customs/" + fileName);
+            let isFileExists = await isUrlFound(fileUrl);
+            if (isFileExists) {
+                newList.push(oldList[i])
+            }
+            // Set new
+            if(!isFileExists && currentFileName == fileName){
+                cond1 = true;
+            }
+        }
+        //
+        if(newList.length == 0){
+            cond2 = true;
+        }
+        //
+        if(items.taskAvailNotiSoundCustom == true && (cond1 == true || oldList.length == 0)){
+            if(cond2 == true){
+                chrome.storage.local.set({
+                    "taskAvailNotiSoundCustom": false,
+                    "taskAvailableNotiSoundFileName": "vintage-telephone-ringtone.mp3"
+                });
+            }
+            else{
+                chrome.storage.local.set({
+                    "taskAvailableNotiSoundFileName": newList[0][1]
+                });
+            }
+        }
+        chrome.storage.local.set({ "soundCustoms": newList });
+        // console.log(newList);
+
     });
 
 }, 500)
