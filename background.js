@@ -174,7 +174,7 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     if (Object.getOwnPropertyNames(request) == "getResFile") {
         if (request.getResFile == "taskAvailableNotiSound") {
 
-            chrome.storage.local.get(["taskAvailableNotiSoundFileName"], async function (items) {
+            chrome.storage.local.get(["taskAvailableNotiSoundFileName"], function (items) {
                 let fileName = items.taskAvailableNotiSoundFileName;
                 chrome.storage.local.get(["taskAvailNotiSoundCustom"], async function (items) {
                     let soundUrl = "";
@@ -186,11 +186,11 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
                     //
                     let isFileExists = await isUrlFound(soundUrl);
                     if (!isFileExists) {
-                        soundUrl = chrome.runtime.getURL("res/sounds/sound-default.mp3");
+                        soundUrl = chrome.runtime.getURL("res/sounds/vintage-telephone-ringtone.mp3");
                         isFileExists = await isUrlFound(soundUrl);
                         if (!isFileExists) {
                             // https://.... sound source
-                            soundUrl = "...";
+                            soundUrl = chrome.runtime.getURL("res/sounds/vintage-telephone-ringtone.mp3");
                             isFileExists = await isUrlFound(soundUrl);
                             sendResponse(soundUrl);
                         }

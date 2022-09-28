@@ -320,6 +320,7 @@ $(document).ready(function () {
                             }
                         }
                         chrome.storage.local.set({ "soundCustoms": customSoundsList });
+                        chrome.storage.local.set({ "taskAvailableNotiSoundFileName": fileName });
                         chrome.storage.local.set({ "taskAvailNotiSoundCustom": true });
                         $("#addCusSoundHelperSuccContent").removeClass("d-none");
                         $("#addCusSoundHelperErrContent").addClass("d-none");
