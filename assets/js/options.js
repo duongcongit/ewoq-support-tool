@@ -1,6 +1,5 @@
 $(document).ready(function () {
 
-
     // Switch mode
     $(document).on("click", "#autoModeSwitch", function () {
         if ($("#autoModeSwitch").is(":checked")) {
@@ -21,13 +20,37 @@ $(document).ready(function () {
             chrome.runtime.sendMessage({ "switchCountTimeMode": "turn on" }, function (response) {
                 console.log(response)
             });
+            $("#set-count-time-content").removeClass("d-none");
+            $("#autoSubmitConainer").css("opacity", "1");
+            $("#autoSubmitSwitch").prop("disabled", false);
+            chrome.storage.local.get(["autoSubmit"], (items)=>{
+                if(items.autoSubmit == true){
+                    $("#autoSubmitOptions").removeClass("d-none");
+                }
+                else{
+                    $("#autoSubmitOptions").addClass("d-none");
+                }
+            })
+            
         }
         else {
             chrome.runtime.sendMessage({ "switchCountTimeMode": "turn off" }, function (response) {
                 console.log(response)
             });
+            $("#set-count-time-content").addClass("d-none");
+            $("#autoSubmitConainer").css("opacity", "0.5");
+            $("#autoSubmitSwitch").prop("disabled", true);
+            $("#autoSubmitOptions").addClass("d-none");
         }
     })
+
+    // Box pos
+    $('input[name="grRadioCountTimePos"]').on("click", function () {
+        let pos = parseInt(this.value);
+        chrome.storage.local.set({ "countTimeBoxPos": pos });
+        let countTimeImgCont = document.getElementById("countTimeImgCont");
+        countTimeImgCont.innerHTML = '<img src="/assets/imgs/options/count-time/' + pos + '%.png" alt="">';
+    });
 
     // Auto submit mode
     $(document).on("click", "#autoSubmitSwitch", function () {
@@ -35,12 +58,42 @@ $(document).ready(function () {
             chrome.runtime.sendMessage({ "switchAutoSubmitMode": "turn on" }, function (response) {
                 console.log(response)
             });
+            $("#autoSubmitOptions").removeClass("d-none");
         }
         else {
             chrome.runtime.sendMessage({ "switchAutoSubmitMode": "turn off" }, function (response) {
                 console.log(response)
             });
+            $("#autoSubmitOptions").addClass("d-none");
         }
+    })
+
+    //
+    $(document).on("change", "#autoSubmitAfterSelect", () => {
+        let time = parseInt($("#autoSubmitAfterSelect option:selected").val());
+        chrome.storage.local.set({ "autoSubmitAfter": time });
+        chrome.storage.local.get(["showAutoSubmitWhileRemaining"], (items) => {
+            let remaining = items.showAutoSubmitWhileRemaining;
+            if ((time-10) < remaining) {
+                chrome.storage.local.set({ "showAutoSubmitWhileRemaining": (time-10) });
+                $("#inputShowAutoSubmitWhileRemain").val((time-10).toString());
+                $("#inputShowAutoSubmitWhileRemain").prop("max", time-10);
+            }
+        })
+        console.log("Changed auto submit after: " + time)
+    })
+
+    // Show box
+    $("#inputShowAutoSubmitWhileRemain").on("change", ()=>{
+        let time = parseInt($("#inputShowAutoSubmitWhileRemain").val());
+        chrome.storage.local.get(["autoSubmitAfter"], (items)=>{
+            if(time > (items.autoSubmitAfter - 10)){
+                time = items.autoSubmitAfter - 10;
+                $("#inputShowAutoSubmitWhileRemain").val(time)
+            }
+            chrome.storage.local.set({ "showAutoSubmitWhileRemaining": time });
+        })
+        
     })
 
     // Alert VPN disconnect
@@ -136,6 +189,10 @@ $(document).ready(function () {
             if (items.soundCustoms.length > 0) {
                 chrome.storage.local.set({ "taskAvailableNotiSoundFileName": items.soundCustoms[0][1] });
             }
+            else{
+                chrome.storage.local.set({ "taskAvailableNotiSoundFileName": items.soundExists[0][1] });
+                chrome.storage.local.set({ "taskAvailNotiSoundCustom": false });
+            }
             getSoundList("customs");
         })
         $("#addCustomSoundContent").removeClass("d-none");
@@ -148,10 +205,17 @@ $(document).ready(function () {
         demoSoundPlaying = false;
     })
 
+
     // Select sound
     $(document).on("change", "#taskAvailNotiSoundSelect", () => {
         let soundFileName = $("#taskAvailNotiSoundSelect option:selected").val();
         chrome.storage.local.set({ "taskAvailableNotiSoundFileName": soundFileName });
+        let isUseCustomSound = $("#radioSoundCustom").is(":checked");
+        if(isUseCustomSound){
+            chrome.storage.local.set({ "taskAvailNotiSoundCustom": true });
+        }else{
+            chrome.storage.local.set({ "taskAvailNotiSoundCustom": false });
+        }
         $("#btnDemoSound").addClass("bi-volume-mute-fill")
         $("#btnDemoSound").removeClass("bi-volume-up-fill")
         demoSound.pause();
@@ -256,9 +320,11 @@ $(document).ready(function () {
                             }
                         }
                         chrome.storage.local.set({ "soundCustoms": customSoundsList });
+                        chrome.storage.local.set({ "taskAvailNotiSoundCustom": true });
                         $("#addCusSoundHelperSuccContent").removeClass("d-none");
                         $("#addCusSoundHelperErrContent").addClass("d-none");
                         console.log("Thêm thành công");
+                        getSoundList("customs");
                     }
                 })
             }
@@ -274,7 +340,10 @@ $(document).ready(function () {
     chrome.storage.local.get([
         "autoCount",
         "countTime",
+        "countTimeBoxPos",
         "autoSubmit",
+        "autoSubmitAfter",
+        "showAutoSubmitWhileRemaining",
         "alertVPNDisconnected",
         "taskAvailableNoti",
         "taskAvailableLoopNoti",
@@ -291,11 +360,30 @@ $(document).ready(function () {
         // Count time mode
         if (items.countTime == true) {
             $("#countTimeSwitch").attr("checked", true);
+            $("#set-count-time-content").removeClass("d-none");
+            $("#autoSubmitConainer").css("opacity", "1");
+            $("#autoSubmitSwitch").prop("disabled", false);
         }
+        // Box pos
+        let pos = items.countTimeBoxPos;
+        $('input[name="grRadioCountTimePos"][value="' + pos + '"]').attr("checked", true);
+        let countTimeImgCont = document.getElementById("countTimeImgCont");
+        countTimeImgCont.innerHTML = '<img src="/assets/imgs/options/count-time/' + pos + '%.png" alt="">';
         // Auto submit mode
         if (items.autoSubmit == true) {
             $("#autoSubmitSwitch").attr("checked", true);
+            if(items.countTime == true){
+                $("#autoSubmitOptions").removeClass("d-none");
+            }
         }
+        // Auto submit after
+        let time = items.autoSubmitAfter;
+        $('#autoSubmitAfterSelect option[value="' + time + '"]').attr("selected", true);
+        // Show auto submit box while remainning
+        let showAutoSubmitBoxWhileRemainning = items.showAutoSubmitWhileRemaining;
+        $("#inputShowAutoSubmitWhileRemain").val(showAutoSubmitBoxWhileRemainning);
+        $("#inputShowAutoSubmitWhileRemain").prop("max", time-10);
+
         // Alert VPN disconnected
         if (items.alertVPNDisconnected == true) {
             $("#alertVPNDisSwitch").attr("checked", true);
@@ -360,18 +448,18 @@ $(document).ready(function () {
     })
 
     // Get history click
-    // chrome.storage.local.get(["historyClick"], function (items) {
-    //     if (items.historyClick != undefined) {
-    //         console.log("co")
-    //         let table = document.getElementById("tableBodyHistory");
-    //         let tableData = "";
-    //         let historyClick = items.historyClick;
-    //         for (let i = historyClick.length - 1; i >= 0; i--) {
-    //             tableData += '<tr> <th>' + (i + 1) + '</th> <td>' + historyClick[i] + '</td> </tr>';
-    //         }
-    //         table.innerHTML = tableData;
-    //     }
-    // })
+    chrome.storage.local.get(["clickHistory"], function (items) {
+        if (items.clickHistory != undefined) {
+            console.log("co")
+            let table = document.getElementById("tableBodyHistory");
+            let tableData = "";
+            let clickHistory = items.clickHistory;
+            for (let i = clickHistory.length - 1; i >= 0; i--) {
+                tableData += '<tr> <th>' + (i + 1) + '</th> <td>' + clickHistory[i] + '</td> </tr>';
+            }
+            table.innerHTML = tableData;
+        }
+    })
 
 
     chrome.storage.local.get([
@@ -390,9 +478,6 @@ $(document).ready(function () {
             "taskAvailableNotiContent": content
         });
     })
-
-
-
 
 
 })

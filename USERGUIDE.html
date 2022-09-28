@@ -7,9 +7,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>User guide</title>
     <link href="./assets/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="./assets/css/options.css" />
     <script src="./assets/js/jquery-3.6.1.min.js"></script>
     <!-- <script src="./options.js"></script> -->
+    <style>
+        #features>ul>li>a{
+            text-decoration: none;
+            color: black;
+        }
+        .guidline-content>ul>li{
+            list-style: none;
+            margin-bottom: 5px;
+        }
+        .guidline-content>ul>li>a{
+            text-decoration: none;
+            color: black;
+        }
+    </style>
 </head>
 
 <body>
@@ -19,24 +35,9 @@
             <!-- Navbar -->
             <div class="col-md-12">
                 <nav class="navbar navbar-expand-lg navbar-light">
-                    <div class="container-fluid">
+                    <div class="container-fluid d-flex justify-content-center">
                         <img src="./icon/icon_manual.png" alt="" />
-                        <a class="navbar-brand ms-2" href="#">Hướng dẫn sử dụng - Auto count task</a>
-                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                            aria-expanded="false" aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon"></span>
-                        </button>
-                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                                <li class="nav-item">
-                                    <a class="nav-link active" aria-current="page" href="#">Home</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="#">Link</a>
-                                </li>
-                            </ul>
-                        </div>
+                        <a class="navbar-brand ms-2" href="#">Hướng dẫn - EWOQ Support Tool</a>
                     </div>
                 </nav>
             </div>
@@ -47,65 +48,116 @@
     <div class="main container-fluid">
         <div class="row">
             <div class="col-md-12" id="features">
-                <h5>Có gì ở phiên bản này?</h5>
+                <h4 class="mb-0"><i class="bi bi-pencil-square me-2 text-info fs-3"></i>Có gì ở v2.0?</h4>
+                <p class="mt-0 mb-2 ms-4 ps-2 text-muted" style="font-size: 13px;">(Click để xem chi tiết)</p>
                 <ul>
                     <li>
-                        <p><strong class="text-warning">(Đặc biệt)</strong> Tự động đếm task khi submit (Chỉ dùng trên trang EWOQ)</p>
+                        <a href="#countTimeInstructions" ><strong class="text-info">(Mới)</strong> Đếm thời gian </a>
+                        <ul>
+                            <li>
+                                <p class="mb-1">Tùy chỉnh vị trí hiển thị thời gian</p>
+                            </li>
+                        </ul>
                     </li>
+                    <!--  -->
                     <li>
-                        <p>Đếm thủ công</p>
+                        <a href="#autoSubmitInstructions" ><strong class="text-info">(Mới)</strong> Tự động submit </a>
+                        <ul>
+                            <li>
+                                <p class="mb-1">Tùy chỉnh thời gian và thông báo submit</p>
+                            </li>
+                        </ul>
                     </li>
+                    <!--  -->
                     <li>
-                        <p>Lịch sử click</p>
+                        <a href="#taskAvailNotiInstructions" ><strong class="text-info">(Mới)</strong> Thông báo khi có task </a>
+                        <ul>
+                            <li>
+                                <p class="mb-1">Tùy chỉnh thông báo biểu ngữ</p>
+                            </li>
+                            <li>
+                                <p class="mb-1">Thêm và tùy chỉnh âm thanh thông báo</p>
+                            </li>
+                        </ul>
                     </li>
+                    <!--  -->
                     <li>
-                        <p>Lần click gần nhất</p>
-                    </li>
-                    <li>
-                        <p>Reset bộ đếm</p>
-                    </li>
-                    <li>
-                        <p>........</p>
+                        <p> Sửa lỗi tự động đếm và một vài lỗi khác </p>
                     </li>
                 </ul>
             </div>
             <!--  -->
-            <div class="col-md-12">
-                <h5>Hướng dẫn sử dụng chung</h5>
+            <div class="col-md-12 guidline-content">
+                <h4><i class="fa-solid fa-book text-info me-2 fs-3"></i>Hướng dẫn sử dụng chung</h4>
+                <h5 class="ms-4 mb-0"><img src="./assets/imgs/icons/ewoq-logo.png" alt="" style="width: 25px;"> EWOQ</h5>
+                <p class="mt-0 mb-2 ms-4 ps-2 text-muted" style="font-size: 13px;">(Click để xem chi tiết)</p>
                 <ul>
                     <li>
-                        <p>Chế độ tự động đếm (Chỉ dùng trên trang EWOQ)</p>
-                        <div>
-                            <p>- Cách bật/tắt:</p>
-                            <div class="ms-3">
-                                <p class="fw-bolder text-info">Cách 1: Bật/tắt trực tiếp ở menu chính</p>
-                                <div class="mt-2">
-                                    <p class="ms-3">B1: Click chuột phải vào icon extension</p>
-                                    <img class="ms-5" src="./assets/imgs/guidline/1.png" alt="">
-                                </div>
-                                <div>
-                                    <p class="ms-3">B2: Click "Switch to Auto mode... / Switch to Manual mode" để
-                                        bật/tắt chế độ tự động đếm</p>
-                                    <img class="ms-5 d-inline" src="./assets/imgs/guidline/2.png" alt="">
-                                    <img class="ms-5 d-inline" src="./assets/imgs/guidline/3.png" alt="">
-                                </div>
-                            </div>
-                            <!--  -->
-                            <div class="ms-3">
-                                <p class="fw-bolder text-info">Cách 2: Bật/tắt trong trang tùy trọn</p>
-                                <div class="mt-2">
-                                    <p class="ms-3">B1: Click chuột phải vào icon extension</p>
-                                    <img class="ms-5" src="./assets/imgs/guidline/1.png" alt="">
-                                </div>
-                                <div>
-                                    <p class="ms-3">B2: Click "Options" để mở trang tùy chọn</p>
-                                    <img class="ms-5 d-inline" src="./assets/imgs/guidline/4.png" alt="">
-                                </div>
-                                <div>
-                                    <p class="ms-3">B2: Click để bật/tắt chế độ tự động</p>
-                                    <img class="ms-5 d-inline" src="./assets/imgs/guidline/5.png" alt="">
-                                </div>
-                            </div>
+                        <a href="#autoCountInstructions"><strong>1. </strong> Chế độ tự động đếm</a>
+                    </li>
+                    <li>
+                        <a href="#countTimeInstructions"><strong>2. </strong> Chế độ đếm thời gian</a>
+                    </li>
+                    <li>
+                        <a href="#autoSubmitInstructions"><strong>3. </strong> Chế độ tự động submit</a>
+                    </li>
+                    <li>
+                        <a href="#taskAvailNotiInstructions"><strong>4. </strong> Chế độ thông báo khi có task</a>
+                    </li>
+                </ul>
+                <!--  -->
+                <h5>Chi tiết:</h5>
+                <ul>
+                    <li>
+                        <strong class="fs-5" id="autoCountInstructions">1. Chế độ tự động đếm</strong>
+                        <div class="ms-4 mt-3">
+                            <img src="assets/imgs/guidline/1.png" alt="" style="width: 80vw;">
+                        </div>
+                    </li>
+                    <li style="list-style: none;" class="mt-5">
+                        <strong class="fs-5" id="countTimeInstructions">2. Chế độ đếm thời gian</strong>
+                        <div class="ms-4 mt-3">
+                            <img src="assets/imgs/guidline/2.png" alt="" style="width: 80vw;">
+                            <p class="mt-5">- Tùy chỉnh vị trí bộ đếm thời gian:</p>
+                            <img src="assets/imgs/guidline/21.png" alt="" style="width: 80vw;">
+                        </div>
+                    </li>
+                    <li style="list-style: none;" class="mt-5">
+                        <strong class="fs-5" id="autoSubmitInstructions">3. Chế độ tự động submit <span class="text-info">(Cần bật chế độ đếm thời gian)</span></strong>
+                        <div class="ms-4 mt-3">
+                            <img src="assets/imgs/guidline/3.png" alt="" style="width: 80vw;">
+                            <p class="mt-4">- Tùy chỉnh thời gian tự động submit:</p>
+                            <img src="assets/imgs/guidline/31.png" alt="" style="width: 80vw;">
+                        </div>
+                    </li>
+                    <li style="list-style: none;" class="mt-5">
+                        <strong class="fs-5" id="taskAvailNotiInstructions">4. Thông báo khi có task</strong>
+                        <div class="ms-4 mt-3">
+                            <img src="assets/imgs/guidline/4.png" alt="" style="width: 80vw;">
+                            <p class="mt-4"><strong>4.1.</strong> Tùy chỉnh tiêu đề, nội dung thông báo:</p>
+                            <img src="assets/imgs/guidline/41.png" alt="" style="width: 80vw;">
+                            <p class="mt-4"><strong>4.2.</strong> Sử dụng thông báo âm thanh:</p>
+                            <img src="assets/imgs/guidline/42.png" alt="" style="width: 80vw;">
+                            <p class="mt-4"><strong>4.2.1.</strong> Sử dụng chuông có sẵn:</p>
+                            <img src="assets/imgs/guidline/421.png" alt="" style="width: 80vw;">
+                            <p class="mt-4"><strong>4.2.2.</strong> Sử dụng chuông tùy chọn:</p>
+                            <img src="assets/imgs/guidline/422.png" alt="" style="width: 80vw;">
+                            <div class="mt-4 mb-2" id="addSoundInstruction"><strong>4.3. Cách thêm chuông tùy chọn:</strong></div>
+                            <h6><i class="bi bi-exclamation-octagon-fill text-warning"> Chú ý: </i>Do vẫn đề về bảo mật và quyền riêng tư của google, cách thêm âm thanh tùy chọn chỉ có thể sử dụng được khi bạn sử dụng cách cài bằng Chế độ dành cho nhà phát triển (Developer mode) thông qua thư mục nguồn của extension.</h6>
+                            <p class="mt-4"><strong>4.3.1.</strong> Bước 1: Chuẩn bị</p>
+                            <p class="mt-4"> - File âm thanh <br> <strong>Lưu ý:</strong> đặt tên file âm thanh viết liền không dấu, không có kí tự đặc biệt (Chỉ hỗ trợ các định dạng âm thanh: mp3) <br> Ví dụ: nhac-chuong.mp3</p>
+                            <p class="mt-4"><strong>4.3.2.</strong> Bước 2: Copy file âm thanh đã chuẩn bị vào thư mục <strong>customs</strong> trong thư mục extension <strong>đã tải về và giải nén</strong> theo đường dẫn: </p>
+                            <strong>&ltThư mục extension đã tải về và giải nén&gt/sources/res/sounds/customs/</strong>
+                            <img src="assets/imgs/guidline/4221.png" alt="" class="ms-4 mt-3" style="width: 80vw;">
+                            <img src="assets/imgs/guidline/4222.png" alt="" class="ms-4" style="width: 80vw;">
+                            <p class="mt-4"><strong>4.3.3.</strong> Bước 3: Reload lại extension</p>
+                            <p class="mt-2">Vào lại trang quản lý extensions của chrom và ấn reload lại. <br> <strong>More tools->Extensions</strong> hoặc <strong>Công cụ khác-> Tiện ích mở rộng</strong></p>
+                            <img src="assets/imgs/guidline/433.png" alt="" class="ms-4" style="width: 80vw;">
+                            <p class="mt-4"><strong>4.3.4.</strong> Bước 4: Thêm tên file trong trang Cài đặt</p>
+                            <p class="mt-4 ms-3">- Điền tên file vừa copy vào thư mục <strong>customs</strong> và nhấn thêm </p>
+                            <img src="assets/imgs/guidline/434.png" alt="" class="ms-4" style="width: 80vw;">
+                            <p class="mt-4"><strong>4.3.5. XONG</strong> , giờ file đã được cập nhật trong danh sách ở trên <br> hãy chọn để dùng nó! </p>
+                            <img src="assets/imgs/guidline/435.png" alt="" class="ms-4" style="width: 80vw;">
                         </div>
                     </li>
 
@@ -113,7 +165,6 @@
             </div>
         </div>
     </div>
-
     <!-- Footer -->
     <div class="footer container"></div>
 

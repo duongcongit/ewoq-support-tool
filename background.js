@@ -1,7 +1,6 @@
 
 const SHODAN_API = "iVaixJbnxaPBeJhuQHTM6Sn7kyOMQ5xJ";
 
-
 chrome.runtime.onInstalled.addListener(function (reason) {
 
     let exitsNotiSound = [];
@@ -22,6 +21,7 @@ chrome.runtime.onInstalled.addListener(function (reason) {
             "autoCount": false,
             "autoCountSound": "default.mp3",
             "countTime": false,
+            "countTimeBoxPos": 45,
             "autoSubmit": false,
             "autoSubmitAfter": 120,
             "showAutoSubmitWhileRemaining": 90,
@@ -277,7 +277,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // Get auto submit mode
     if (Object.getOwnPropertyNames(request) == "getAutoSubmitMode") {
         if (request.getAutoSubmitMode == "true") {
-
             chrome.storage.local.get(["autoSubmit"], function (items) {
                 sendResponse(items.autoSubmit);
             });
@@ -289,7 +288,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     // Get time auto submit after
     if (Object.getOwnPropertyNames(request) == "getAutoSubmitAfter") {
         if (request.getAutoSubmitAfter == "true") {
-
             chrome.storage.local.get(["autoSubmitAfter"], function (items) {
                 sendResponse(items.autoSubmitAfter);
             });
@@ -298,10 +296,9 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
     }
 
-    // Get show auto submit alert while remaining
-    if (Object.getOwnPropertyNames(request) == "showAutoSubmitWhileRemaining") {
-        if (request.showAutoSubmitWhileRemaining == "true") {
-
+    // Get show auto submit while remainning
+    if (Object.getOwnPropertyNames(request) == "getShowAutoSubmitWhileRemaining") {
+        if (request.getShowAutoSubmitWhileRemaining == "true") {
             chrome.storage.local.get(["showAutoSubmitWhileRemaining"], function (items) {
                 sendResponse(items.showAutoSubmitWhileRemaining);
             });

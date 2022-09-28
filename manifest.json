@@ -21,12 +21,10 @@
     "content_scripts": [
         {
             "matches": [
-                "https://rating.ewoq.google.com/*",
-                "file:///media/duongcong/Data/Cong/Web/auto-count-extension/test.html",
-                "http://127.0.0.1:5500/test.html"
+                "https://rating.ewoq.google.com/*"
             ],
             "css": [
-                "./assets/css/count-notify.css"
+                "./assets/css/ewoq.css"
             ],
             "js": [
                 "ewoq.js"
