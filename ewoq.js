@@ -1,6 +1,3 @@
-
-
-
 window.onload = function () {
 
     console.log("Imported extension script")
@@ -117,47 +114,53 @@ window.onload = function () {
 
     // Submit button click event
     const submitButtonClick = () => {
-        chrome.runtime.sendMessage({ "autoCount": "true" }, (response) => {
 
-            if (response != "Not auto") {
-                let alertClick = document.createElement("div");
-                let alertClickContent = '<div id="al"><p style="margin: 0; display: inline; color: white;">' + response + '</p></div>';
-                alertClick.innerHTML = alertClickContent;
-                headerContainer.appendChild(alertClick);
-                setTimeout(() => {
-                    headerContainer.removeChild(alertClick);
-                }, 1000);
+        // Check if submit button is enabled or not
+        let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
+        if (!btnSubmit.classList.contains("is-disabled")) {
+            chrome.runtime.sendMessage({ "autoCount": "true" }, (response) => {
 
-                console.log(response);
-            }
-        });
+                if (response != "Not auto") {
+                    let alertClick = document.createElement("div");
+                    let alertClickContent = '<div id="al"><p style="margin: 0; display: inline; color: white;">' + response + '</p></div>';
+                    alertClick.innerHTML = alertClickContent;
+                    headerContainer.appendChild(alertClick);
+                    setTimeout(() => {
+                        headerContainer.removeChild(alertClick);
+                    }, 1000);
 
-        // Check new task on submit and show time counter if is enabled
-        removeTaskTimeCounter();
-        setTimeout(() => {
-            let submitButton = document.getElementsByClassName("submitTaskButton")[0];
-            let continueButton = document.getElementsByClassName("continue-button")[0];
-            if (submitButton != null || continueButton != null) {
-                showTaskTimeCounter();
-                // Check and show auto submit
-                checkAndShowAutoSubmit();
-                let time = 1;
-                let checkSubmitButtonInterval = setInterval(() => {
-                    let submitButton = document.getElementsByClassName("submitTaskButton")[0];
-                    if (time <= 10) {
-                        if (submitButton == null && continueButton == null) {
-                            removeTaskTimeCounter();
+                    console.log(response);
+                }
+            });
+
+            // Check new task on submit and show time counter if is enabled
+            removeTaskTimeCounter();
+            setTimeout(() => {
+                let submitButton = document.getElementsByClassName("submitTaskButton")[0];
+                let continueButton = document.getElementsByClassName("continue-button")[0];
+                if (submitButton != null || continueButton != null) {
+                    showTaskTimeCounter();
+                    // Check and show auto submit
+                    checkAndShowAutoSubmit();
+                    let time = 1;
+                    let checkSubmitButtonInterval = setInterval(() => {
+                        let submitButton = document.getElementsByClassName("submitTaskButton")[0];
+                        if (time <= 10) {
+                            if (submitButton == null && continueButton == null) {
+                                removeTaskTimeCounter();
+                                clearInterval(checkSubmitButtonInterval);
+                            }
+                        }
+                        else {
                             clearInterval(checkSubmitButtonInterval);
                         }
-                    }
-                    else {
-                        clearInterval(checkSubmitButtonInterval);
-                    }
-                    // console.log("check submit: " + time);
-                    time++;
-                }, 1000);
-            }
-        }, 1000)
+                        // console.log("check submit: " + time);
+                        time++;
+                    }, 1000);
+                }
+            }, 1000)
+
+        }
 
     }
 
@@ -457,7 +460,7 @@ window.onload = function () {
                                     chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, (response) => {
                                         let soundUrl = response;
                                         audioElement.innerHTML = '<source src="' + soundUrl + '" type="audio/mpeg" />'
-                                        if(isInteract){
+                                        if (isInteract) {
                                             audioElement.play();
                                             isNotiSoundPlaying = true;
                                         }
@@ -473,7 +476,7 @@ window.onload = function () {
                                         })
                                         //
                                     })
-                                    
+
 
                                 }
 
@@ -528,14 +531,14 @@ window.onload = function () {
     // Take a break button
     const takeABreakClickEvent = () => {
         removeTaskTimeCounter();
-            let box = document.getElementById("autot-submit-box");
-            if (box != null) {
-                box.remove();
-            }
+        let box = document.getElementById("autot-submit-box");
+        if (box != null) {
+            box.remove();
+        }
     }
     setInterval(() => {
         let btn = document.getElementsByClassName("skip-and-take-a-break-button")[0];
-        if(btn != null){
+        if (btn != null) {
             btn.removeEventListener("click", takeABreakClickEvent);
             btn.addEventListener("click", takeABreakClickEvent);
         }
