@@ -404,6 +404,7 @@ window.onload = function () {
     var isNotiSoundPlaying = false;
     var isNotiShowing = false;
     var notiCountdown = 0;
+    var isInteract = false;
     var audioElement = document.createElement('audio');
     setInterval(() => {
         let btnStart = document.getElementsByClassName("start-button")[0];
@@ -456,7 +457,10 @@ window.onload = function () {
                                     chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, (response) => {
                                         let soundUrl = response;
                                         audioElement.innerHTML = '<source src="' + soundUrl + '" type="audio/mpeg" />'
-                                        audioElement.play();
+                                        if(isInteract){
+                                            audioElement.play();
+                                            isNotiSoundPlaying = true;
+                                        }
 
                                         chrome.runtime.sendMessage({ "getTaskAvailableLoopNoti": "true" }, (response) => {
                                             let loopMode = response;
@@ -469,7 +473,7 @@ window.onload = function () {
                                         })
                                         //
                                     })
-                                    isNotiSoundPlaying = true;
+                                    
 
                                 }
 
@@ -500,6 +504,7 @@ window.onload = function () {
         if (tans != null) {
             tans.remove();
         }
+        isInteract = true;
     })
 
     chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
