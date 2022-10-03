@@ -26,6 +26,7 @@ chrome.runtime.onInstalled.addListener(function (reason) {
             "autoSubmitAfter": 120,
             "showAutoSubmitWhileRemaining": 90,
             "alertVPNDisconnected": false,
+            "autoReload": false,
             "taskAvailableNoti": false,
             "taskAvailableNotiTitle": "Attention",
             "taskAvailableNotiContent": "Task available!",
@@ -37,8 +38,33 @@ chrome.runtime.onInstalled.addListener(function (reason) {
             "taskAvailableLoopNoti": true,
         });
     }
+    // Update
+    if (reason.reason == "update") {
+        chrome.storage.local.get(["autoReload"], (items) => {
+            if (items.autoReload == undefined) {
+                chrome.storage.local.set({ "autoReload": false })
+            }
+        })
+    }
+
+    // Close EWOQ page when install/update extension.
+    (async () => {
+        let url = "https://rating.ewoq.google.com/";
+        var tabs = await chrome.tabs.query({});
+        tabs.forEach(function (tab) {
+            if (tab.url.includes(url)) {
+                console.log(tab.id);
+                chrome.tabs.remove(tab.id, function () { });
+            }
+        });
+    })();
+
+
+
+
 
 })
+
 // On start up
 chrome.runtime.onStartup.addListener(function () {
 
@@ -61,23 +87,7 @@ const isUrlFound = async (url) => {
 
 
 
-// setTimeout(() => {
-//     let ip = "31.171.154.220";
-//     fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
-//         .then((response) => response.json())
-//         .then((data) => {
-//             // chrome.storage.local.set({
-//             //     "currentIpAddr": data.ipAddress,
-//             // });
-//             let tags = data.tags;
-//             let host = JSON.stringify(data.data[0].http.host);
-//             console.log("Tags: " + tags);
-//             console.log("IP: " + host);
-//             if(tags == "vpn"){
-//                 console.log("VPN")
-//             }
-//         });
-// }, 100)
+
 
 // Message listener
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
@@ -87,28 +97,6 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         chrome.storage.local.get(["alertVPNDisconnected"], function (items) {
             sendResponse(items.alertVPNDisconnected);
         });
-        return true;
-    }
-
-
-    // Check VPN
-    if (Object.getOwnPropertyNames(request) == "checkVPN") {
-
-        fetch('http://ip-api.com/json')
-            .then((response) => response.json())
-            .then((data) => {
-                let ip = data.query;
-                fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        let tags = data.tags;
-                        // let host = JSON.stringify(data.data[0].http.host);
-                        // console.log("Tags: " + tags);
-                        // console.log("IP: " + host);
-                        sendResponse(tags);
-                    });
-            });
-
         return true;
     }
 
@@ -554,23 +542,23 @@ setTimeout(function () {
                 newList.push(oldList[i])
             }
             // Set new
-            if(!isFileExists && currentFileName == fileName){
+            if (!isFileExists && currentFileName == fileName) {
                 cond1 = true;
             }
         }
         //
-        if(newList.length == 0){
+        if (newList.length == 0) {
             cond2 = true;
         }
         //
-        if(items.taskAvailNotiSoundCustom == true && (cond1 == true || oldList.length == 0)){
-            if(cond2 == true){
+        if (items.taskAvailNotiSoundCustom == true && (cond1 == true || oldList.length == 0)) {
+            if (cond2 == true) {
                 chrome.storage.local.set({
                     "taskAvailNotiSoundCustom": false,
                     "taskAvailableNotiSoundFileName": "vintage-telephone-ringtone.mp3"
                 });
             }
-            else{
+            else {
                 chrome.storage.local.set({
                     "taskAvailableNotiSoundFileName": newList[0][1]
                 });
@@ -780,6 +768,49 @@ chrome.action.onClicked.addListener((tab) => {
 
 
 // =========== Test
+
+// setTimeout(() => {
+//     let ip = "31.171.154.220";
+//     fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
+//         .then((response) => response.json())
+//         .then((data) => {
+//             // chrome.storage.local.set({
+//             //     "currentIpAddr": data.ipAddress,
+//             // });
+//             let tags = data.tags;
+//             let host = JSON.stringify(data.data[0].http.host);
+//             console.log("Tags: " + tags);
+//             console.log("IP: " + host);
+//             if(tags == "vpn"){
+//                 console.log("VPN")
+//             }
+//         });
+// }, 100)
+
+
+// Check VPN
+// if (Object.getOwnPropertyNames(request) == "checkVPN") {
+
+//     fetch('http://ip-api.com/json')
+//         .then((response) => response.json())
+//         .then((data) => {
+//             let ip = data.query;
+//             fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
+//                 .then((response) => response.json())
+//                 .then((data) => {
+//                     let tags = data.tags;
+//                     // let host = JSON.stringify(data.data[0].http.host);
+//                     // console.log("Tags: " + tags);
+//                     // console.log("IP: " + host);
+//                     sendResponse(tags);
+//                 });
+//         });
+
+//     return true;
+// }
+
+
+
 // function updateMode() {
 //     chrome.storage.local.get(["autoCount"], function (items) {
 //         if (items.autoCount == true) {
