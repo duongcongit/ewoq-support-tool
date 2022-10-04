@@ -1,4 +1,4 @@
-window.onload = function () {
+window.onload = () => {
 
     console.log("Imported extension script")
 
@@ -112,12 +112,21 @@ window.onload = function () {
         }
     }
 
+    // Check if submit button is enabled or not
+    var isSubmitBtnEnabled = false;
+    setInterval(() => {
+        let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
+        if (btnSubmit.classList.contains("is-disabled")) {
+            isSubmitBtnEnabled = false;
+        }
+        else {
+            isSubmitBtnEnabled = true;
+        }
+    }, 20)
+
     // Submit button click event
     const submitButtonClick = () => {
-
-        // Check if submit button is enabled or not
-        let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
-        if (!btnSubmit.classList.contains("is-disabled")) {
+        if (isSubmitBtnEnabled) {
             chrome.runtime.sendMessage({ "autoCount": "true" }, (response) => {
 
                 if (response != "Not auto") {
@@ -544,41 +553,31 @@ window.onload = function () {
         }
     }, 2000)
 
-
-    // Check VPN/Network
-    // let time = 0;
-    // setInterval(() => {
-    //     chrome.runtime.sendMessage({ "getAlertVPNDisMode": "true" }, (response) => {
-    //         if (response == true) {
-    //             chrome.runtime.sendMessage({ "checkVPN": "true" },(response) => {
-    //                 if(response == "vpn"){
-    //                     console.log(time/5 + ": VPN working")
-    //                 }
-    //                 else{
-    //                     console.log(time/5 + ": VPN not working")
-    //                 }
-    //             })
-    //         }
-
-    //     })
-    //     time += 5;
-    // }, 5000)
-
-
 }
 
 
 
-// document.getElementsByClassName("btn-switch-submit")[0].addEventListener("click",() => {
-//     let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
+// ================= TEST =====================
 
-//     if (btnSubmit.disabled) {
-//         btnSubmit.removeAttribute("disabled")
-//     }
-//     else {
-//         btnSubmit.setAttribute('disabled', '');
-//     }
-// })
+// Check VPN / Network
+// let time = 0;
+// setInterval(() => {
+//     chrome.runtime.sendMessage({ "getAlertVPNDisMode": "true" }, (response) => {
+//         if (response == true) {
+//             chrome.runtime.sendMessage({ "checkVPN": "true" }, (response) => {
+//                 if (response == "vpn") {
+//                     console.log(time / 5 + ": VPN working")
+//                 }
+//                 else {
+//                     console.log(time / 5 + ": VPN not working")
+//                 }
+//             })
+//         }
+
+//     })
+//     time += 5;
+// }, 5000)
+
 
 
 // Start next task

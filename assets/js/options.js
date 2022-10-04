@@ -1,23 +1,23 @@
-$(document).ready(function () {
+$(document).ready( () => {
 
     // Switch mode
-    $(document).on("click", "#autoModeSwitch", function () {
+    $(document).on("click", "#autoModeSwitch", () => {
         if ($("#autoModeSwitch").is(":checked")) {
-            chrome.runtime.sendMessage({ "switchAutoCountMode": "turn on" }, function (response) {
+            chrome.runtime.sendMessage({ "switchAutoCountMode": "turn on" }, (response) => {
                 console.log(response)
             });
         }
         else {
-            chrome.runtime.sendMessage({ "switchAutoCountMode": "turn off" }, function (response) {
+            chrome.runtime.sendMessage({ "switchAutoCountMode": "turn off" }, (response) => {
                 console.log(response)
             });
         }
     })
 
     // Count time
-    $(document).on("click", "#countTimeSwitch", function () {
+    $(document).on("click", "#countTimeSwitch", () => {
         if ($("#countTimeSwitch").is(":checked")) {
-            chrome.runtime.sendMessage({ "switchCountTimeMode": "turn on" }, function (response) {
+            chrome.runtime.sendMessage({ "switchCountTimeMode": "turn on" }, (response) => {
                 console.log(response)
             });
             $("#set-count-time-content").removeClass("d-none");
@@ -34,7 +34,7 @@ $(document).ready(function () {
             
         }
         else {
-            chrome.runtime.sendMessage({ "switchCountTimeMode": "turn off" }, function (response) {
+            chrome.runtime.sendMessage({ "switchCountTimeMode": "turn off" }, (response) => {
                 console.log(response)
             });
             $("#set-count-time-content").addClass("d-none");
@@ -45,7 +45,7 @@ $(document).ready(function () {
     })
 
     // Box pos
-    $('input[name="grRadioCountTimePos"]').on("click", function () {
+    $('input[name="grRadioCountTimePos"]').on("click", () => {
         let pos = parseInt(this.value);
         chrome.storage.local.set({ "countTimeBoxPos": pos });
         let countTimeImgCont = document.getElementById("countTimeImgCont");
@@ -53,15 +53,15 @@ $(document).ready(function () {
     });
 
     // Auto submit mode
-    $(document).on("click", "#autoSubmitSwitch", function () {
+    $(document).on("click", "#autoSubmitSwitch", () => {
         if ($("#autoSubmitSwitch").is(":checked")) {
-            chrome.runtime.sendMessage({ "switchAutoSubmitMode": "turn on" }, function (response) {
+            chrome.runtime.sendMessage({ "switchAutoSubmitMode": "turn on" }, (response) => {
                 console.log(response)
             });
             $("#autoSubmitOptions").removeClass("d-none");
         }
         else {
-            chrome.runtime.sendMessage({ "switchAutoSubmitMode": "turn off" }, function (response) {
+            chrome.runtime.sendMessage({ "switchAutoSubmitMode": "turn off" }, (response) => {
                 console.log(response)
             });
             $("#autoSubmitOptions").addClass("d-none");
@@ -97,29 +97,29 @@ $(document).ready(function () {
     })
 
     // Alert VPN disconnect
-    $(document).on("click", "#alertVPNDisSwitch", function () {
+    $(document).on("click", "#alertVPNDisSwitch", () => {
         if ($("#alertVPNDisSwitch").is(":checked")) {
-            chrome.runtime.sendMessage({ "switchAlertVPNDisMode": "turn on" }, function (response) {
+            chrome.runtime.sendMessage({ "switchAlertVPNDisMode": "turn on" }, (response) => {
                 console.log(response)
             });
         }
         else {
-            chrome.runtime.sendMessage({ "switchAlertVPNDisMode": "turn off" }, function (response) {
+            chrome.runtime.sendMessage({ "switchAlertVPNDisMode": "turn off" }, (response) => {
                 console.log(response)
             });
         }
     })
 
     // Task avail notif mode
-    $(document).on("click", "#taskAvailableNotiSwitch", function () {
+    $(document).on("click", "#taskAvailableNotiSwitch", () => {
         if ($("#taskAvailableNotiSwitch").is(":checked")) {
-            chrome.runtime.sendMessage({ "switchTaskAvailableNoti": "turn on" }, function (response) {
+            chrome.runtime.sendMessage({ "switchTaskAvailableNoti": "turn on" }, (response) => {
                 console.log(response)
             });
             $(".custom-task-avail-noti").css("display", "block");
         }
         else {
-            chrome.runtime.sendMessage({ "switchTaskAvailableNoti": "turn off" }, function (response) {
+            chrome.runtime.sendMessage({ "switchTaskAvailableNoti": "turn off" }, (response) => {
                 console.log(response)
             });
             $(".custom-task-avail-noti").css("display", "none");
@@ -127,7 +127,7 @@ $(document).ready(function () {
     })
 
     // Task avail notif sound
-    $(document).on("click", "#taskAvailableNotiSoundSwitch", function () {
+    $(document).on("click", "#taskAvailableNotiSoundSwitch", () => {
         if ($("#taskAvailableNotiSoundSwitch").is(":checked")) {
             chrome.storage.local.set({ "taskAvailableNotiSound": true });
             $("#taskAvailableNotiSoundOptions").removeClass("d-none");
@@ -232,11 +232,11 @@ $(document).ready(function () {
             $("#btnDemoSound").removeClass("bi-volume-mute-fill")
             $("#btnDemoSound").addClass("bi-volume-up-fill")
             //
-            chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, function (response) {
+            chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, (response) => {
                 demoSound.innerHTML = '<source src="' + response + '" type="audio/mpeg" />'
                 demoSound.load()
                 demoSound.play();
-                demoSound.onended = function () {
+                demoSound.onended = () => {
                     $("#btnDemoSound").addClass("bi-volume-mute-fill")
                     $("#btnDemoSound").removeClass("bi-volume-up-fill")
                     demoSound.pause();
@@ -291,7 +291,7 @@ $(document).ready(function () {
     // Add custom sound
     $(document).on("click", "#btnAddCustomSound", async () => {
         let fileName = $("#imputCustomSound").val();
-        chrome.runtime.sendMessage({ "checkCustomSoundFile": fileName.toString() }, function (response) {
+        chrome.runtime.sendMessage({ "checkCustomSoundFile": fileName.toString() }, (response) => {
             if (response) {
                 let customSoundsList = [];
                 chrome.storage.local.get(["soundCustoms"], (items) => {
@@ -353,7 +353,7 @@ $(document).ready(function () {
         "soundExists",
         "soundCustoms",
         "taskAvailableNotiSoundFileName"
-    ], function (items) {
+    ], (items) => {
         // Auto count mode
         if (items.autoCount == true) {
             $("#autoModeSwitch").attr("checked", true);
@@ -432,24 +432,24 @@ $(document).ready(function () {
 
 
     // Set new total click
-    $(document).on("click", "#btnSetTotalClick", function () {
+    $(document).on("click", "#btnSetTotalClick", () => {
         var newTotalClick = parseInt($("#inputSetTotalClick").val());
         if (newTotalClick >= 0) {
-            chrome.runtime.sendMessage({ "setTotalClick": newTotalClick.toString() }, function (response) {
+            chrome.runtime.sendMessage({ "setTotalClick": newTotalClick.toString() }, (response) => {
                 console.log(response)
             });
         }
     })
 
     // Reset counter
-    $(document).on("click", "#btnResetCounter", function () {
-        chrome.runtime.sendMessage({ "resetCounter": "true" }, function (response) {
+    $(document).on("click", "#btnResetCounter", () => {
+        chrome.runtime.sendMessage({ "resetCounter": "true" }, (response) => {
             console.log(response)
         });
     })
 
     // Get history click
-    chrome.storage.local.get(["clickHistory"], function (items) {
+    chrome.storage.local.get(["clickHistory"], (items) => {
         if (items.clickHistory != undefined) {
             console.log("co")
             let table = document.getElementById("tableBodyHistory");
@@ -466,7 +466,7 @@ $(document).ready(function () {
     chrome.storage.local.get([
         "taskAvailableNotiTitle",
         "taskAvailableNotiContent"
-    ], function (items) {
+    ], (items) => {
         $("#inputTitleNoti").val(items.taskAvailableNotiTitle)
         $("#inputContentNoti").val(items.taskAvailableNotiContent)
     })
