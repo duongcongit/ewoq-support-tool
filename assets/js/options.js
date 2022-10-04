@@ -1,6 +1,160 @@
-$(document).ready( () => {
+$(document).ready(() => {
 
-    // Switch mode
+    /*************** GEENERAL SETTINGS ***************/
+    // Set new total click
+    $(document).on("click", "#btnSetTotalClick", () => {
+        var newTotalClick = parseInt($("#inputSetTotalClick").val());
+        if (newTotalClick >= 0) {
+            chrome.runtime.sendMessage({ "setTotalClick": newTotalClick.toString() }, (response) => {
+                console.log(response)
+            });
+        }
+    })
+
+    // Reset counter
+    $(document).on("click", "#btnResetCounter", () => {
+        chrome.runtime.sendMessage({ "resetCounter": "true" }, (response) => {
+            console.log(response)
+        });
+    })
+
+    /*************** EWOQ SETTINGS ***************/
+    // ======= Check mode on load =======
+    chrome.storage.local.get([
+        "autoCount",
+        "countTime",
+        "countTimeBoxPos",
+        "autoSubmit",
+        "autoSubmitAfter",
+        "showAutoSubmitWhileRemaining",
+        "alertVPNDisconnected",
+        "taskAvailableNoti",
+        "taskAvailableNotiTitle",
+        "taskAvailableNotiContent",
+        "autoReload",
+        "autoReloadEvery",
+        "taskAvailableLoopNoti",
+        "taskAvailableNotiSound",
+        "taskAvailNotiSoundCustom",
+        "soundExists",
+        "soundCustoms",
+        "taskAvailableNotiSoundFileName"
+    ], (items) => {
+        // === Auto count mode
+        if (items.autoCount == true) {
+            $("#autoModeSwitch").attr("checked", true);
+        }
+
+        // === Count time mode
+        if (items.countTime == true) {
+            $("#countTimeSwitch").attr("checked", true);
+            $("#set-count-time-content").removeClass("d-none");
+            $("#autoSubmitConainer").css("opacity", "1");
+            $("#autoSubmitSwitch").prop("disabled", false);
+        }
+        // Box pos
+        let pos = items.countTimeBoxPos;
+        $('input[name="grRadioCountTimePos"][value="' + pos + '"]').attr("checked", true);
+        let countTimeImgCont = document.getElementById("countTimeImgCont");
+        countTimeImgCont.innerHTML = '<img src="/assets/imgs/options/count-time/' + pos + '%.png" alt="">';
+
+        // === Auto submit mode
+        if (items.autoSubmit == true) {
+            $("#autoSubmitSwitch").attr("checked", true);
+            if (items.countTime == true) {
+                $("#autoSubmitOptions").removeClass("d-none");
+            }
+        }
+        // Auto submit after
+        let time = items.autoSubmitAfter;
+        $('#autoSubmitAfterSelect option[value="' + time + '"]').attr("selected", true);
+        // Show auto submit box while remainning
+        let showAutoSubmitBoxWhileRemainning = items.showAutoSubmitWhileRemaining;
+        $("#inputShowAutoSubmitWhileRemain").val(showAutoSubmitBoxWhileRemainning);
+        $("#inputShowAutoSubmitWhileRemain").prop("max", time - 10);
+
+        // === Alert VPN disconnected
+        if (items.alertVPNDisconnected == true) {
+            $("#alertVPNDisSwitch").attr("checked", true);
+        }
+
+
+        // ============= TASK AVAILABLE NOTIFICATION =============
+        if (items.taskAvailableNoti == true) {
+            $("#taskAvailableNotiSwitch").attr("checked", true);
+            $(".custom-task-avail-noti").css("display", "block");
+        }
+        else {
+            $(".custom-task-avail-noti").css("display", "none");
+        }
+
+        // Noti title and content
+        $("#inputTitleNoti").val(items.taskAvailableNotiTitle)
+        $("#inputContentNoti").val(items.taskAvailableNotiContent)
+
+        // == Auto reload
+        if (items.autoReload == true) {
+            $("#autoReloadSwitch").attr("checked", true);
+            $("#autoReloadSelect").prop("disabled", false);
+            if (items.taskAvailableNotiSound == true) {
+                $("#txtWarningTurnOnAutoPlayOnReload").removeClass("d-none");
+            }
+        }
+        else {
+            $("#autoReloadSwitch").attr("checked", false);
+            $("#autoReloadSelect").prop("disabled", true);
+            $("#txtWarningTurnOnAutoPlayOnReload").addClass("d-none");
+        }
+        // Set auto reload select
+        let autoReloadSelect = document.getElementById("autoReloadSelect");
+        let inHtml = "";
+        for (let i = 1; i <= 15; i++) {
+            if (items.autoReloadEvery == i * 60) {
+                inHtml += '<option value="' + i * 60 + '" selected>' + i + ' phút</option>';
+            }
+            else {
+                inHtml += '<option value="' + i * 60 + '">' + i + ' phút</option>';
+            }
+
+        }
+        autoReloadSelect.innerHTML = inHtml;
+
+
+        // == Task available noti sound
+        if (items.taskAvailableNotiSound == true) {
+            $("#taskAvailableNotiSoundSwitch").attr("checked", true);
+            $("#taskAvailableNotiSoundOptions").removeClass("d-none");
+        }
+        else {
+
+            $("#taskAvailableNotiSoundOptions").addClass("d-none");
+        }
+        // Task available noti sound loop
+        if (items.taskAvailableLoopNoti == true) {
+            $("#radioLoopSound").attr("checked", true);
+        }
+        else {
+            $("#radioBtnOneTimeSound").attr("checked", true);
+        }
+        // Sound custom mode
+        if (items.taskAvailNotiSoundCustom == true) {
+            $("#radioSoundCustom").attr("checked", true);
+            $("#addCustomSoundContent").removeClass("d-none");
+            getSoundList("customs");
+        }
+        else {
+            $("#radioSoundExist").attr("checked", true);
+            $("#addCustomSoundContent").addClass("d-none");
+            getSoundList("exists");
+        }
+
+
+
+
+    })
+
+    // ======= Mode =======
+    // 1. Switch mode
     $(document).on("click", "#autoModeSwitch", () => {
         if ($("#autoModeSwitch").is(":checked")) {
             chrome.runtime.sendMessage({ "switchAutoCountMode": "turn on" }, (response) => {
@@ -14,7 +168,8 @@ $(document).ready( () => {
         }
     })
 
-    // Count time
+
+    // 2. Count time
     $(document).on("click", "#countTimeSwitch", () => {
         if ($("#countTimeSwitch").is(":checked")) {
             chrome.runtime.sendMessage({ "switchCountTimeMode": "turn on" }, (response) => {
@@ -23,15 +178,15 @@ $(document).ready( () => {
             $("#set-count-time-content").removeClass("d-none");
             $("#autoSubmitConainer").css("opacity", "1");
             $("#autoSubmitSwitch").prop("disabled", false);
-            chrome.storage.local.get(["autoSubmit"], (items)=>{
-                if(items.autoSubmit == true){
+            chrome.storage.local.get(["autoSubmit"], (items) => {
+                if (items.autoSubmit == true) {
                     $("#autoSubmitOptions").removeClass("d-none");
                 }
-                else{
+                else {
                     $("#autoSubmitOptions").addClass("d-none");
                 }
             })
-            
+
         }
         else {
             chrome.runtime.sendMessage({ "switchCountTimeMode": "turn off" }, (response) => {
@@ -43,8 +198,7 @@ $(document).ready( () => {
             $("#autoSubmitOptions").addClass("d-none");
         }
     })
-
-    // Box pos
+    // 2.1. Box pos
     $('input[name="grRadioCountTimePos"]').on("click", () => {
         let pos = parseInt(this.value);
         chrome.storage.local.set({ "countTimeBoxPos": pos });
@@ -52,7 +206,8 @@ $(document).ready( () => {
         countTimeImgCont.innerHTML = '<img src="/assets/imgs/options/count-time/' + pos + '%.png" alt="">';
     });
 
-    // Auto submit mode
+
+    // 3. Auto submit mode
     $(document).on("click", "#autoSubmitSwitch", () => {
         if ($("#autoSubmitSwitch").is(":checked")) {
             chrome.runtime.sendMessage({ "switchAutoSubmitMode": "turn on" }, (response) => {
@@ -67,36 +222,35 @@ $(document).ready( () => {
             $("#autoSubmitOptions").addClass("d-none");
         }
     })
-
-    //
+    // 3.1. Time auto submit
     $(document).on("change", "#autoSubmitAfterSelect", () => {
         let time = parseInt($("#autoSubmitAfterSelect option:selected").val());
         chrome.storage.local.set({ "autoSubmitAfter": time });
         chrome.storage.local.get(["showAutoSubmitWhileRemaining"], (items) => {
             let remaining = items.showAutoSubmitWhileRemaining;
-            if ((time-10) < remaining) {
-                chrome.storage.local.set({ "showAutoSubmitWhileRemaining": (time-10) });
-                $("#inputShowAutoSubmitWhileRemain").val((time-10).toString());
-                $("#inputShowAutoSubmitWhileRemain").prop("max", time-10);
+            if ((time - 10) < remaining) {
+                chrome.storage.local.set({ "showAutoSubmitWhileRemaining": (time - 10) });
+                $("#inputShowAutoSubmitWhileRemain").val((time - 10).toString());
+                $("#inputShowAutoSubmitWhileRemain").prop("max", time - 10);
             }
         })
         console.log("Changed auto submit after: " + time)
     })
-
-    // Show box
-    $("#inputShowAutoSubmitWhileRemain").on("change", ()=>{
+    // 3.2. Show box
+    $("#inputShowAutoSubmitWhileRemain").on("change", () => {
         let time = parseInt($("#inputShowAutoSubmitWhileRemain").val());
-        chrome.storage.local.get(["autoSubmitAfter"], (items)=>{
-            if(time > (items.autoSubmitAfter - 10)){
+        chrome.storage.local.get(["autoSubmitAfter"], (items) => {
+            if (time > (items.autoSubmitAfter - 10)) {
                 time = items.autoSubmitAfter - 10;
                 $("#inputShowAutoSubmitWhileRemain").val(time)
             }
             chrome.storage.local.set({ "showAutoSubmitWhileRemaining": time });
         })
-        
+
     })
 
-    // Alert VPN disconnect
+
+    // 4. Alert VPN disconnect
     $(document).on("click", "#alertVPNDisSwitch", () => {
         if ($("#alertVPNDisSwitch").is(":checked")) {
             chrome.runtime.sendMessage({ "switchAlertVPNDisMode": "turn on" }, (response) => {
@@ -110,7 +264,8 @@ $(document).ready( () => {
         }
     })
 
-    // Task avail notif mode
+
+    // 5. Task avail notif mode
     $(document).on("click", "#taskAvailableNotiSwitch", () => {
         if ($("#taskAvailableNotiSwitch").is(":checked")) {
             chrome.runtime.sendMessage({ "switchTaskAvailableNoti": "turn on" }, (response) => {
@@ -126,32 +281,65 @@ $(document).ready( () => {
         }
     })
 
-    // Task avail notif sound
+    // 5.1 Auto reload switch
+    $(document).on("click", "#autoReloadSwitch", () => {
+        if ($("#autoReloadSwitch").is(":checked")) {
+            chrome.storage.local.set({ "autoReload": true });
+            $("#autoReloadSelect").prop("disabled", false);
+            chrome.storage.local.get(["taskAvailableNotiSound"], (items) => {
+                if (items.taskAvailableNotiSound == true) {
+                    $("#txtWarningTurnOnAutoPlayOnReload").removeClass("d-none");
+                }
+            })
+
+            console.log("Turn on reload")
+        }
+        else {
+            chrome.storage.local.set({ "autoReload": false });
+            $("#autoReloadSelect").prop("disabled", true);
+            $("#txtWarningTurnOnAutoPlayOnReload").addClass("d-none");
+            console.log("Turn off auto reload")
+        }
+    })
+
+    // 5.1.1 Get and set select time reload to local
+    $(document).on("change", "#autoReloadSelect", () => {
+        let autoReloadEvery = parseInt($("#autoReloadSelect option:selected").val());
+        chrome.storage.local.set({ "autoReloadEvery": autoReloadEvery });
+    })
+
+    // 5.2. Save change custom noti
+    $(document).on("click", "#btn-save-custom-noti", () => {
+        let title = $("#inputTitleNoti").val();
+        let content = $("#inputContentNoti").val();
+        chrome.storage.local.set({
+            "taskAvailableNotiTitle": title,
+            "taskAvailableNotiContent": content
+        });
+    })
+
+    // 5.3. Task avail notif sound
     $(document).on("click", "#taskAvailableNotiSoundSwitch", () => {
         if ($("#taskAvailableNotiSoundSwitch").is(":checked")) {
             chrome.storage.local.set({ "taskAvailableNotiSound": true });
             $("#taskAvailableNotiSoundOptions").removeClass("d-none");
+            chrome.storage.local.get(["autoReload"], (items) => {
+                if (items.autoReload == true) {
+                    $("#txtWarningTurnOnAutoPlayOnReload").removeClass("d-none");
+                }
+            })
             console.log("Turn on sound")
         }
         else {
             chrome.storage.local.set({ "taskAvailableNotiSound": false });
             $("#taskAvailableNotiSoundOptions").addClass("d-none");
+            $("#txtWarningTurnOnAutoPlayOnReload").addClass("d-none");
             console.log("Turn off sound")
         }
 
-        chrome.storage.local.get([
-            "autoCount",
-            "countTime",
-            "autoSubmit",
-            "alertVPNDisconnected",
-            "taskAvailableNoti",
-            "taskAvailableNotiSound"
-        ], (items) => {
-            console.log(items.taskAvailableNotiSound)
-        })
     })
 
-    // Loop mode
+    // 5.3.1. Loop mode
     $(document).on("click", "#radioBtnOneTimeSound", () => {
         chrome.storage.local.set({ "taskAvailableLoopNoti": false });
         console.log("Turn off loop noti")
@@ -161,7 +349,7 @@ $(document).ready( () => {
         console.log("Turn on loop noti")
     })
 
-    // Sound
+    // 5.3.2. Sound
     $(document).on("click", "#radioSoundExist", () => {
         chrome.storage.local.set({ "taskAvailNotiSoundCustom": false });
         chrome.storage.local.get([
@@ -189,7 +377,7 @@ $(document).ready( () => {
             if (items.soundCustoms.length > 0) {
                 chrome.storage.local.set({ "taskAvailableNotiSoundFileName": items.soundCustoms[0][1] });
             }
-            else{
+            else {
                 chrome.storage.local.set({ "taskAvailableNotiSoundFileName": items.soundExists[0][1] });
                 chrome.storage.local.set({ "taskAvailNotiSoundCustom": false });
             }
@@ -205,15 +393,14 @@ $(document).ready( () => {
         demoSoundPlaying = false;
     })
 
-
-    // Select sound
+    // 5.3.2.1. Select sound
     $(document).on("change", "#taskAvailNotiSoundSelect", () => {
         let soundFileName = $("#taskAvailNotiSoundSelect option:selected").val();
         chrome.storage.local.set({ "taskAvailableNotiSoundFileName": soundFileName });
         let isUseCustomSound = $("#radioSoundCustom").is(":checked");
-        if(isUseCustomSound){
+        if (isUseCustomSound) {
             chrome.storage.local.set({ "taskAvailNotiSoundCustom": true });
-        }else{
+        } else {
             chrome.storage.local.set({ "taskAvailNotiSoundCustom": false });
         }
         $("#btnDemoSound").addClass("bi-volume-mute-fill")
@@ -224,7 +411,7 @@ $(document).ready( () => {
         console.log("Changed sound name to: " + soundFileName);
     })
 
-    // Play demo sound
+    // 5.3.2.2. Play demo sound
     var demoSoundPlaying = false;
     var demoSound = document.createElement("audio");
     $(document).on("click", "#btnDemoSound", () => {
@@ -256,7 +443,7 @@ $(document).ready( () => {
         }
     })
 
-    // Get sound list
+    // 5.3.2.3. Get sound list
     const getSoundList = (type) => {
 
         chrome.storage.local.get([
@@ -288,7 +475,7 @@ $(document).ready( () => {
 
     }
 
-    // Add custom sound
+    // 5.3.2.4. Add custom sound
     $(document).on("click", "#btnAddCustomSound", async () => {
         let fileName = $("#imputCustomSound").val();
         chrome.runtime.sendMessage({ "checkCustomSoundFile": fileName.toString() }, (response) => {
@@ -337,117 +524,9 @@ $(document).ready( () => {
         });
     })
 
-    // Check mode
-    chrome.storage.local.get([
-        "autoCount",
-        "countTime",
-        "countTimeBoxPos",
-        "autoSubmit",
-        "autoSubmitAfter",
-        "showAutoSubmitWhileRemaining",
-        "alertVPNDisconnected",
-        "taskAvailableNoti",
-        "taskAvailableLoopNoti",
-        "taskAvailableNotiSound",
-        "taskAvailNotiSoundCustom",
-        "soundExists",
-        "soundCustoms",
-        "taskAvailableNotiSoundFileName"
-    ], (items) => {
-        // Auto count mode
-        if (items.autoCount == true) {
-            $("#autoModeSwitch").attr("checked", true);
-        }
-        // Count time mode
-        if (items.countTime == true) {
-            $("#countTimeSwitch").attr("checked", true);
-            $("#set-count-time-content").removeClass("d-none");
-            $("#autoSubmitConainer").css("opacity", "1");
-            $("#autoSubmitSwitch").prop("disabled", false);
-        }
-        // Box pos
-        let pos = items.countTimeBoxPos;
-        $('input[name="grRadioCountTimePos"][value="' + pos + '"]').attr("checked", true);
-        let countTimeImgCont = document.getElementById("countTimeImgCont");
-        countTimeImgCont.innerHTML = '<img src="/assets/imgs/options/count-time/' + pos + '%.png" alt="">';
-        // Auto submit mode
-        if (items.autoSubmit == true) {
-            $("#autoSubmitSwitch").attr("checked", true);
-            if(items.countTime == true){
-                $("#autoSubmitOptions").removeClass("d-none");
-            }
-        }
-        // Auto submit after
-        let time = items.autoSubmitAfter;
-        $('#autoSubmitAfterSelect option[value="' + time + '"]').attr("selected", true);
-        // Show auto submit box while remainning
-        let showAutoSubmitBoxWhileRemainning = items.showAutoSubmitWhileRemaining;
-        $("#inputShowAutoSubmitWhileRemain").val(showAutoSubmitBoxWhileRemainning);
-        $("#inputShowAutoSubmitWhileRemain").prop("max", time-10);
-
-        // Alert VPN disconnected
-        if (items.alertVPNDisconnected == true) {
-            $("#alertVPNDisSwitch").attr("checked", true);
-        }
-        // Task available noti
-        if (items.taskAvailableNoti == true) {
-            $("#taskAvailableNotiSwitch").attr("checked", true);
-            $(".custom-task-avail-noti").css("display", "block");
-        }
-        else {
-            $(".custom-task-avail-noti").css("display", "none");
-        }
-        // Task available noti sound
-        if (items.taskAvailableNotiSound == true) {
-            $("#taskAvailableNotiSoundSwitch").attr("checked", true);
-            $("#taskAvailableNotiSoundOptions").removeClass("d-none");
-        }
-        else {
-
-            $("#taskAvailableNotiSoundOptions").addClass("d-none");
-        }
-        // Task available noti sound loop
-        if (items.taskAvailableLoopNoti == true) {
-            $("#radioLoopSound").attr("checked", true);
-        }
-        else {
-            $("#radioBtnOneTimeSound").attr("checked", true);
-        }
-        // Sound custom mode
-        if (items.taskAvailNotiSoundCustom == true) {
-            $("#radioSoundCustom").attr("checked", true);
-            $("#addCustomSoundContent").removeClass("d-none");
-            getSoundList("customs");
-        }
-        else {
-            $("#radioSoundExist").attr("checked", true);
-            $("#addCustomSoundContent").addClass("d-none");
-            getSoundList("exists");
-        }
 
 
-
-
-    })
-
-
-    // Set new total click
-    $(document).on("click", "#btnSetTotalClick", () => {
-        var newTotalClick = parseInt($("#inputSetTotalClick").val());
-        if (newTotalClick >= 0) {
-            chrome.runtime.sendMessage({ "setTotalClick": newTotalClick.toString() }, (response) => {
-                console.log(response)
-            });
-        }
-    })
-
-    // Reset counter
-    $(document).on("click", "#btnResetCounter", () => {
-        chrome.runtime.sendMessage({ "resetCounter": "true" }, (response) => {
-            console.log(response)
-        });
-    })
-
+    /*************** HISTORIES ***************/
     // Get history click
     chrome.storage.local.get(["clickHistory"], (items) => {
         if (items.clickHistory != undefined) {
@@ -460,24 +539,6 @@ $(document).ready( () => {
             }
             table.innerHTML = tableData;
         }
-    })
-
-
-    chrome.storage.local.get([
-        "taskAvailableNotiTitle",
-        "taskAvailableNotiContent"
-    ], (items) => {
-        $("#inputTitleNoti").val(items.taskAvailableNotiTitle)
-        $("#inputContentNoti").val(items.taskAvailableNotiContent)
-    })
-
-    $(document).on("click", "#btn-save-custom-noti", () => {
-        let title = $("#inputTitleNoti").val();
-        let content = $("#inputContentNoti").val();
-        chrome.storage.local.set({
-            "taskAvailableNotiTitle": title,
-            "taskAvailableNotiContent": content
-        });
     })
 
 

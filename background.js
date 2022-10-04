@@ -1,75 +1,7 @@
-
 const SHODAN_API = "iVaixJbnxaPBeJhuQHTM6Sn7kyOMQ5xJ";
 
-chrome.runtime.onInstalled.addListener((reason) => {
-
-    let exitsNotiSound = [];
-    exitsNotiSound.push(["Bell ringing 1", "bell-ringing-1.mp3"]);
-    exitsNotiSound.push(["Bell ringing 2", "bell-ringing-2.mp3"]);
-    exitsNotiSound.push(["Iphone", "iphone.mp3"]);
-    exitsNotiSound.push(["Iphone Notification", "iphone_notification.mp3"]);
-    exitsNotiSound.push(["Old telephone ring", "old-telephone-ring.mp3"]);
-    exitsNotiSound.push(["Phone off hook", "phone-off-hook.mp3"]);
-    exitsNotiSound.push(["Telephone ring", "telephone-ring.mp3"]);
-    exitsNotiSound.push(["Vintage telephone ringtone", "vintage-telephone-ringtone.mp3"]);
-
-    if (reason.reason == "install") {
-        chrome.storage.local.set({
-            "totalClick": 0,
-            "lastClick": null,
-            "clickHistory": [],
-            "autoCount": false,
-            "autoCountSound": "default.mp3",
-            "countTime": false,
-            "countTimeBoxPos": 45,
-            "autoSubmit": false,
-            "autoSubmitAfter": 120,
-            "showAutoSubmitWhileRemaining": 90,
-            "alertVPNDisconnected": false,
-            "autoReload": false,
-            "taskAvailableNoti": false,
-            "taskAvailableNotiTitle": "Attention",
-            "taskAvailableNotiContent": "Task available!",
-            "taskAvailableNotiSound": false,
-            "taskAvailableNotiSoundFileName": "vintage-telephone-ringtone.mp3",
-            "taskAvailNotiSoundCustom": false,
-            "soundExists": exitsNotiSound,
-            "soundCustoms": [],
-            "taskAvailableLoopNoti": true,
-        });
-    }
-    // Update
-    if (reason.reason == "update") {
-        chrome.storage.local.get(["autoReload"], (items) => {
-            if (items.autoReload == undefined) {
-                chrome.storage.local.set({ "autoReload": false })
-            }
-        })
-    }
-
-    // Close EWOQ page when install/update extension.
-    (async () => {
-        let url = "https://rating.ewoq.google.com/";
-        var tabs = await chrome.tabs.query({});
-        tabs.forEach((tab) => {
-            if (tab.url.includes(url)) {
-                console.log(tab.id);
-                chrome.tabs.remove(tab.id, ()=>{ });
-            }
-        });
-    })();
-
-
-
-
-
-})
-
-// On start up
-chrome.runtime.onStartup.addListener(()=>{
-
-})
-
+// ============ FUNCTION ============
+// Fetch url and return result
 const isUrlFound = async (url) => {
     try {
         const response = await fetch(url, {
@@ -84,350 +16,6 @@ const isUrlFound = async (url) => {
         return false;
     }
 }
-
-// Message listener
-chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
-
-    // Alert VPN disconnected mode
-    if (Object.getOwnPropertyNames(request) == "getAlertVPNDisMode") {
-        chrome.storage.local.get(["alertVPNDisconnected"], (items)=>{
-            sendResponse(items.alertVPNDisconnected);
-        });
-        return true;
-    }
-
-    // Auto count
-    if (Object.getOwnPropertyNames(request) == "autoCount") {
-        if (request.autoCount == "true") {
-            chrome.storage.local.get(["autoCount"], (items)=>{
-                if (items.autoCount == true) {
-                    chrome.storage.local.get(["totalClick"], (items)=>{
-                        let newTotalClick = parseInt(items.totalClick) + 1;
-                        chrome.storage.local.set({ totalClick: newTotalClick });
-                        chrome.action.setBadgeText({ text: newTotalClick.toString() });
-                        sendResponse(newTotalClick);
-                    });
-                }
-                else {
-                    sendResponse("Not auto");
-                }
-            });
-
-            updateLastClick();
-        }
-        return true;
-
-    }
-
-    // Auto submit count
-    if (Object.getOwnPropertyNames(request) == "autoSubmitCount") {
-        if (request.autoSubmitCount == "true") {
-            chrome.storage.local.get(["autoCount", "autoSubmit"], (items)=>{
-                if (items.autoSubmit == true && items.autoCount == false) {
-                    chrome.storage.local.get(["totalClick"], (items)=>{
-                        let newTotalClick = parseInt(items.totalClick) + 1;
-                        chrome.storage.local.set({ totalClick: newTotalClick });
-                        chrome.action.setBadgeText({ text: newTotalClick.toString() });
-                        sendResponse(newTotalClick);
-
-                    });
-                }
-                else {
-                    sendResponse("Auto submit false");
-                }
-            });
-
-            updateLastClick();
-            return true;
-        }
-
-    }
-
-    // Get count task time mode
-    if (Object.getOwnPropertyNames(request) == "getCountTaskTimeMode") {
-        if (request.getCountTaskTimeMode == "true") {
-
-            chrome.storage.local.get(["countTime"], (items)=>{
-                sendResponse(items.countTime);
-            });
-        }
-        return true;
-    }
-
-    // Get and return sound
-    if (Object.getOwnPropertyNames(request) == "getResFile") {
-        if (request.getResFile == "taskAvailableNotiSound") {
-
-            chrome.storage.local.get(["taskAvailableNotiSoundFileName"], (items)=>{
-                let fileName = items.taskAvailableNotiSoundFileName;
-                chrome.storage.local.get(["taskAvailNotiSoundCustom"], async (items)=>{
-                    let soundUrl = "";
-                    if (items.taskAvailNotiSoundCustom == false) {
-                        soundUrl = chrome.runtime.getURL("res/sounds/" + fileName);
-                    } else {
-                        soundUrl = chrome.runtime.getURL("res/sounds/customs/" + fileName);
-                    }
-                    //
-                    let isFileExists = await isUrlFound(soundUrl);
-                    if (!isFileExists) {
-                        soundUrl = chrome.runtime.getURL("res/sounds/vintage-telephone-ringtone.mp3");
-                        isFileExists = await isUrlFound(soundUrl);
-                        if (!isFileExists) {
-                            // https://.... sound source
-                            soundUrl = chrome.runtime.getURL("res/sounds/vintage-telephone-ringtone.mp3");
-                            isFileExists = await isUrlFound(soundUrl);
-                            sendResponse(soundUrl);
-                        }
-                        else {
-                            sendResponse(soundUrl);
-                        }
-                    }
-                    else {
-                        sendResponse(soundUrl);
-                    }
-                });
-
-            });
-        }
-        return true;
-
-    }
-
-    // Check custom sound file
-    if (Object.getOwnPropertyNames(request) == "checkCustomSoundFile") {
-        let a = async () => {
-            let soundUrl = chrome.runtime.getURL("res/sounds/customs/" + request.checkCustomSoundFile);
-            let isFileExists = await isUrlFound(soundUrl);
-            sendResponse(isFileExists);
-        }
-        a();
-        return true;
-
-    }
-
-
-    // Get tast avail noti mode
-    if (Object.getOwnPropertyNames(request) == "taskAvailableNoti") {
-        if (request.taskAvailableNoti == "true") {
-
-            chrome.storage.local.get(["taskAvailableNoti"], (items)=>{
-                sendResponse(items.taskAvailableNoti);
-            });
-        }
-        return true;
-
-    }
-
-    // Get tast available noti sound
-    if (Object.getOwnPropertyNames(request) == "taskAvailableNotiSound") {
-        chrome.storage.local.get(["taskAvailableNotiSound"], (items) => {
-            sendResponse(items.taskAvailableNotiSound);
-        });
-        return true;
-
-    }
-
-
-    // Get loop notification sound
-    if (Object.getOwnPropertyNames(request) == "getTaskAvailableLoopNoti") {
-        if (request.getTaskAvailableLoopNoti == "true") {
-
-            chrome.storage.local.get(["taskAvailableLoopNoti"], (items)=>{
-                sendResponse(items.taskAvailableLoopNoti);
-            });
-        }
-        return true;
-
-    }
-
-
-    // Create noitification
-    if (Object.getOwnPropertyNames(request) == "createAvalableTaskNoiti") {
-        if (request.createAvalableTaskNoiti == "true") {
-            chrome.storage.local.get(["taskAvailableNotiTitle", "taskAvailableNotiContent"], (items)=>{
-                chrome.notifications.create({
-                    title: items.taskAvailableNotiTitle,
-                    message: items.taskAvailableNotiContent,
-                    iconUrl: "/assets/imgs/icons/ewoq-logo.png",
-                    type: "basic"
-                })
-            });
-        }
-        return true;
-
-    }
-
-
-    // Get auto submit mode
-    if (Object.getOwnPropertyNames(request) == "getAutoSubmitMode") {
-        if (request.getAutoSubmitMode == "true") {
-            chrome.storage.local.get(["autoSubmit"], (items)=>{
-                sendResponse(items.autoSubmit);
-            });
-        }
-        return true;
-
-    }
-
-    // Get time auto submit after
-    if (Object.getOwnPropertyNames(request) == "getAutoSubmitAfter") {
-        if (request.getAutoSubmitAfter == "true") {
-            chrome.storage.local.get(["autoSubmitAfter"], (items)=>{
-                sendResponse(items.autoSubmitAfter);
-            });
-        }
-        return true;
-
-    }
-
-    // Get show auto submit while remainning
-    if (Object.getOwnPropertyNames(request) == "getShowAutoSubmitWhileRemaining") {
-        if (request.getShowAutoSubmitWhileRemaining == "true") {
-            chrome.storage.local.get(["showAutoSubmitWhileRemaining"], (items)=>{
-                sendResponse(items.showAutoSubmitWhileRemaining);
-            });
-        }
-        return true;
-
-    }
-
-
-    // Switch auto count mode
-    if (Object.getOwnPropertyNames(request) == "switchAutoCountMode") {
-        // Turm on
-        if (request.switchAutoCountMode == "turn on") {
-            chrome.storage.local.set({ "autoCount": true });
-            chrome.action.setIcon({ path: "/icon/icon_auto.png" });
-            chrome.contextMenus.update("3", {
-                title: "Auto count: ON"
-            });
-            sendResponse("Turn on Auto count mode");
-        }
-        // Turn off
-        else {
-            chrome.storage.local.set({ "autoCount": false });
-            chrome.contextMenus.update("3", {
-                title: "Auto count: OFF"
-            });
-            chrome.action.setIcon({ path: "./icon/icon_manual.png" });
-            sendResponse("Turn off Auto count mode");
-        }
-
-        return true;
-
-    }
-
-    // Switch count time mode
-    if (Object.getOwnPropertyNames(request) == "switchCountTimeMode") {
-        // Turm on
-        if (request.switchCountTimeMode == "turn on") {
-            chrome.storage.local.set({ "countTime": true });
-            chrome.contextMenus.update("4", {
-                title: "Count time: ON"
-            });
-            sendResponse("Turn on Count time mode");
-        }
-        // Turn off
-        else {
-            chrome.storage.local.set({ "countTime": false });
-            chrome.contextMenus.update("4", {
-                title: "Count time: OFF"
-            });
-            sendResponse("Turn off Count time mode");
-        }
-        return true;
-
-    }
-
-
-    // Switch auto submit mode
-    if (Object.getOwnPropertyNames(request) == "switchAutoSubmitMode") {
-        // Turm on
-        if (request.switchAutoSubmitMode == "turn on") {
-            chrome.storage.local.set({ "autoSubmit": true });
-            chrome.contextMenus.update("5", {
-                title: "Auto submit: ON"
-            });
-            sendResponse("Turn on Auto submit mode");
-        }
-        // Turn off
-        else {
-            chrome.storage.local.set({ "autoSubmit": false });
-            chrome.contextMenus.update("5", {
-                title: "Auto submit: OFF"
-            });
-            sendResponse("Turn off Auto submit mode");
-        }
-        return true;
-
-    }
-
-    // Switch alert VPN disconnect
-    if (Object.getOwnPropertyNames(request) == "switchAlertVPNDisMode") {
-        // Turm on
-        if (request.switchAlertVPNDisMode == "turn on") {
-            chrome.storage.local.set({ "alertVPNDisconnected": true });
-            sendResponse("Turn on VPN disconnect mode");
-        }
-        // Turn off
-        else {
-            chrome.storage.local.set({ "alertVPNDisconnected": false });
-            sendResponse("Turn off VPN disconnect mode");
-        }
-        return true;
-
-    }
-
-
-    // Switch task avail noti
-    if (Object.getOwnPropertyNames(request) == "switchTaskAvailableNoti") {
-        // Turm on
-        if (request.switchTaskAvailableNoti == "turn on") {
-            chrome.storage.local.set({ "taskAvailableNoti": true });
-            chrome.contextMenus.update("6", {
-                title: "Task available notification: ON"
-            });
-            sendResponse("Turn on Task available noti");
-        }
-        // Turn off
-        else {
-            chrome.storage.local.set({ "taskAvailableNoti": false });
-            chrome.contextMenus.update("6", {
-                title: "Task available notification: OFF"
-            });
-            sendResponse("Turn off Task available noti");
-        }
-        return true;
-
-    }
-
-
-    // Reset counter
-    if (Object.getOwnPropertyNames(request) == "resetCounter") {
-        if (request.resetCounter == "true") {
-            chrome.storage.local.set({ totalClick: 0 });
-            chrome.action.setBadgeText({ text: "0" });
-            sendResponse("Counter reset successfully");
-        }
-    }
-
-    // Set total click
-    if (Object.getOwnPropertyNames(request) == "setTotalClick") {
-        let totalClick = parseInt(request.setTotalClick);
-        chrome.storage.local.set({ totalClick: totalClick });
-        chrome.action.setBadgeText({ text: totalClick.toString() });
-        sendResponse("Set new total click to " + totalClick + " successfully");
-    }
-
-    // Set check network status
-    if (Object.getOwnPropertyNames(request) == "setTotalClick") {
-        let totalClick = parseInt(request.setTotalClick);
-        chrome.storage.local.set({ totalClick: totalClick });
-        chrome.action.setBadgeText({ text: totalClick.toString() });
-        sendResponse("Set new total click to " + totalClick + " successfully");
-    }
-
-});
 
 // Get current time
 const getCurrentTime = ()=>{
@@ -448,7 +36,7 @@ const getCurrentTime = ()=>{
     return currentTime;
 }
 
-// Function update last click
+// Update last click
 const updateLastClick = ()=>{
     let lastClickTime = getCurrentTime();
     chrome.storage.local.set({ "lastClick": lastClickTime });
@@ -478,6 +66,79 @@ const updateLastClick = ()=>{
 
 }
 
+
+// ============ On install listener ============
+chrome.runtime.onInstalled.addListener((reason) => {
+
+    let exitsNotiSound = [];
+    exitsNotiSound.push(["Bell ringing 1", "bell-ringing-1.mp3"]);
+    exitsNotiSound.push(["Bell ringing 2", "bell-ringing-2.mp3"]);
+    exitsNotiSound.push(["Iphone", "iphone.mp3"]);
+    exitsNotiSound.push(["Iphone Notification", "iphone_notification.mp3"]);
+    exitsNotiSound.push(["Old telephone ring", "old-telephone-ring.mp3"]);
+    exitsNotiSound.push(["Phone off hook", "phone-off-hook.mp3"]);
+    exitsNotiSound.push(["Telephone ring", "telephone-ring.mp3"]);
+    exitsNotiSound.push(["Vintage telephone ringtone", "vintage-telephone-ringtone.mp3"]);
+
+    if (reason.reason == "install") {
+        chrome.storage.local.set({
+            "totalClick": 0,
+            "lastClick": null,
+            "clickHistory": [],
+            "autoCount": false,
+            "autoCountSound": "default.mp3",
+            "countTime": false,
+            "countTimeBoxPos": 45,
+            "autoSubmit": false,
+            "autoSubmitAfter": 120,
+            "showAutoSubmitWhileRemaining": 90,
+            "alertVPNDisconnected": false,
+            "autoReload": false,
+            "autoReloadEvery": 300,
+            "taskAvailableNoti": false,
+            "taskAvailableNotiTitle": "Attention",
+            "taskAvailableNotiContent": "Task available!",
+            "taskAvailableNotiSound": false,
+            "taskAvailableNotiSoundFileName": "vintage-telephone-ringtone.mp3",
+            "taskAvailNotiSoundCustom": false,
+            "soundExists": exitsNotiSound,
+            "soundCustoms": [],
+            "taskAvailableLoopNoti": true,
+            "isAllowedEwoqAutoPlaySound": false
+        });
+    }
+    // Update
+    if (reason.reason == "update") {
+        chrome.storage.local.get(["autoReload", "autoReloadEvery", "isAllowedEwoqAutoPlaySound"], (items) => {
+            if (items.autoReload == undefined) {
+                chrome.storage.local.set({ "autoReload": false })
+            }
+            //
+            if(items.isAllowedEwoqAutoPlaySound == undefined){
+                chrome.storage.local.set({"isAllowedEwoqAutoPlaySound": false})
+            }
+            //
+            if(items.autoReloadEvery == undefined){
+                chrome.storage.local.set({"autoReloadEvery": 300})
+            }
+        })
+    }
+
+    // Close EWOQ page when install/update extension.
+    (async () => {
+        let url = "https://rating.ewoq.google.com/";
+        var tabs = await chrome.tabs.query({});
+        tabs.forEach((tab) => {
+            if (tab.url.includes(url)) {
+                console.log(tab.id);
+                chrome.tabs.remove(tab.id, ()=>{ });
+            }
+        });
+    })();
+
+})
+
+// ============ On load/restart listener ============
 // Load current when restart extension/browser
 setTimeout(()=>{
     chrome.storage.local.get([
@@ -523,7 +184,7 @@ setTimeout(()=>{
         });
     });
 
-    // Check lis sound custom
+    // Check list sound custom
     chrome.storage.local.get(["soundCustoms", "taskAvailableNotiSoundFileName", "taskAvailNotiSoundCustom"], async (items) => {
         let currentFileName = items.taskAvailableNotiSoundFileName;
         let oldList = items.soundCustoms;
@@ -567,7 +228,368 @@ setTimeout(()=>{
 
 }, 500)
 
-// Context menu create
+
+// ============ On click extension icon listener ============
+// Increase counter when click to extensions icon
+chrome.action.onClicked.addListener((tab) => {
+    chrome.storage.local.get(["totalClick"], (items)=>{
+        let totalClick = 0;
+        if (items.totalClick != undefined) {
+            totalClick = parseInt(items.totalClick);
+        }
+        totalClick++;
+        chrome.action.setBadgeText({ text: totalClick.toString() });
+        chrome.storage.local.set({ totalClick: totalClick.toString() });
+
+    });
+
+    updateLastClick();
+
+});
+
+
+// ============ Message listener ============
+chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
+
+    /*************** GEENERAL SETTINGS ***************/
+    // 1. Set total click
+    if (Object.getOwnPropertyNames(request) == "setTotalClick") {
+        let totalClick = parseInt(request.setTotalClick);
+        chrome.storage.local.set({ totalClick: totalClick });
+        chrome.action.setBadgeText({ text: totalClick.toString() });
+        sendResponse("Set new total click to " + totalClick + " successfully");
+    }
+
+    // 2. Reset counter
+    if (Object.getOwnPropertyNames(request) == "resetCounter") {
+        if (request.resetCounter == "true") {
+            chrome.storage.local.set({ totalClick: 0 });
+            chrome.action.setBadgeText({ text: "0" });
+            sendResponse("Counter reset successfully");
+        }
+    }
+
+
+    /*************** EWOQ ***************/
+    // 1. Switch auto count mode
+    if (Object.getOwnPropertyNames(request) == "switchAutoCountMode") {
+        // Turm on
+        if (request.switchAutoCountMode == "turn on") {
+            chrome.storage.local.set({ "autoCount": true });
+            chrome.action.setIcon({ path: "/icon/icon_auto.png" });
+            chrome.contextMenus.update("3", {
+                title: "Auto count: ON"
+            });
+            sendResponse("Turn on Auto count mode");
+        }
+        // Turn off
+        else {
+            chrome.storage.local.set({ "autoCount": false });
+            chrome.contextMenus.update("3", {
+                title: "Auto count: OFF"
+            });
+            chrome.action.setIcon({ path: "./icon/icon_manual.png" });
+            sendResponse("Turn off Auto count mode");
+        }
+
+        return true;
+
+    }
+
+    // 1.0. Auto count
+    if (Object.getOwnPropertyNames(request) == "autoCount") {
+        if (request.autoCount == "true") {
+            chrome.storage.local.get(["autoCount"], (items)=>{
+                if (items.autoCount == true) {
+                    chrome.storage.local.get(["totalClick"], (items)=>{
+                        let newTotalClick = parseInt(items.totalClick) + 1;
+                        chrome.storage.local.set({ totalClick: newTotalClick });
+                        chrome.action.setBadgeText({ text: newTotalClick.toString() });
+                        sendResponse(newTotalClick);
+                    });
+                }
+                else {
+                    sendResponse("Not auto");
+                }
+            });
+
+            updateLastClick();
+        }
+        return true;
+
+    }
+
+    // 2. Get count task time mode
+    if (Object.getOwnPropertyNames(request) == "getCountTaskTimeMode") {
+        if (request.getCountTaskTimeMode == "true") {
+
+            chrome.storage.local.get(["countTime"], (items)=>{
+                sendResponse(items.countTime);
+            });
+        }
+        return true;
+    }
+
+    // 2.0. Switch count time mode
+    if (Object.getOwnPropertyNames(request) == "switchCountTimeMode") {
+        // Turm on
+        if (request.switchCountTimeMode == "turn on") {
+            chrome.storage.local.set({ "countTime": true });
+            chrome.contextMenus.update("4", {
+                title: "Count time: ON"
+            });
+            sendResponse("Turn on Count time mode");
+        }
+        // Turn off
+        else {
+            chrome.storage.local.set({ "countTime": false });
+            chrome.contextMenus.update("4", {
+                title: "Count time: OFF"
+            });
+            sendResponse("Turn off Count time mode");
+        }
+        return true;
+
+    }
+
+    // 3. Get auto submit mode
+    if (Object.getOwnPropertyNames(request) == "getAutoSubmitMode") {
+        if (request.getAutoSubmitMode == "true") {
+            chrome.storage.local.get(["autoSubmit"], (items)=>{
+                sendResponse(items.autoSubmit);
+            });
+        }
+        return true;
+
+    }
+
+    // 3.0. Switch auto submit mode
+    if (Object.getOwnPropertyNames(request) == "switchAutoSubmitMode") {
+        // Turm on
+        if (request.switchAutoSubmitMode == "turn on") {
+            chrome.storage.local.set({ "autoSubmit": true });
+            chrome.contextMenus.update("5", {
+                title: "Auto submit: ON"
+            });
+            sendResponse("Turn on Auto submit mode");
+        }
+        // Turn off
+        else {
+            chrome.storage.local.set({ "autoSubmit": false });
+            chrome.contextMenus.update("5", {
+                title: "Auto submit: OFF"
+            });
+            sendResponse("Turn off Auto submit mode");
+        }
+        return true;
+
+    }
+
+    // 3.1. Get time auto submit after
+    if (Object.getOwnPropertyNames(request) == "getAutoSubmitAfter") {
+        if (request.getAutoSubmitAfter == "true") {
+            chrome.storage.local.get(["autoSubmitAfter"], (items)=>{
+                sendResponse(items.autoSubmitAfter);
+            });
+        }
+        return true;
+
+    }
+
+    // 3.2. Get show auto submit while remainning
+    if (Object.getOwnPropertyNames(request) == "getShowAutoSubmitWhileRemaining") {
+        if (request.getShowAutoSubmitWhileRemaining == "true") {
+            chrome.storage.local.get(["showAutoSubmitWhileRemaining"], (items)=>{
+                sendResponse(items.showAutoSubmitWhileRemaining);
+            });
+        }
+        return true;
+
+    }
+
+    // 3.3. Auto submit count
+    if (Object.getOwnPropertyNames(request) == "autoSubmitCount") {
+        if (request.autoSubmitCount == "true") {
+            chrome.storage.local.get(["autoCount", "autoSubmit"], (items)=>{
+                if (items.autoSubmit == true && items.autoCount == false) {
+                    chrome.storage.local.get(["totalClick"], (items)=>{
+                        let newTotalClick = parseInt(items.totalClick) + 1;
+                        chrome.storage.local.set({ totalClick: newTotalClick });
+                        chrome.action.setBadgeText({ text: newTotalClick.toString() });
+                        sendResponse(newTotalClick);
+
+                    });
+                }
+                else {
+                    sendResponse("Auto submit false");
+                }
+            });
+
+            updateLastClick();
+            return true;
+        }
+
+    }
+
+    // 4. Alert VPN disconnected mode
+    if (Object.getOwnPropertyNames(request) == "getAlertVPNDisMode") {
+        chrome.storage.local.get(["alertVPNDisconnected"], (items)=>{
+            sendResponse(items.alertVPNDisconnected);
+        });
+        return true;
+    }
+
+    // 4.0. Switch alert VPN disconnect mode
+    if (Object.getOwnPropertyNames(request) == "switchAlertVPNDisMode") {
+        // Turm on
+        if (request.switchAlertVPNDisMode == "turn on") {
+            chrome.storage.local.set({ "alertVPNDisconnected": true });
+            sendResponse("Turn on VPN disconnect mode");
+        }
+        // Turn off
+        else {
+            chrome.storage.local.set({ "alertVPNDisconnected": false });
+            sendResponse("Turn off VPN disconnect mode");
+        }
+        return true;
+
+    }
+
+    // 5. Get tast avail noti mode
+    if (Object.getOwnPropertyNames(request) == "taskAvailableNoti") {
+        if (request.taskAvailableNoti == "true") {
+
+            chrome.storage.local.get(["taskAvailableNoti"], (items)=>{
+                sendResponse(items.taskAvailableNoti);
+            });
+        }
+        return true;
+
+    }
+
+    // 5.0. Switch task avail noti
+    if (Object.getOwnPropertyNames(request) == "switchTaskAvailableNoti") {
+        // Turm on
+        if (request.switchTaskAvailableNoti == "turn on") {
+            chrome.storage.local.set({ "taskAvailableNoti": true });
+            chrome.contextMenus.update("6", {
+                title: "Task available notification: ON"
+            });
+            sendResponse("Turn on Task available noti");
+        }
+        // Turn off
+        else {
+            chrome.storage.local.set({ "taskAvailableNoti": false });
+            chrome.contextMenus.update("6", {
+                title: "Task available notification: OFF"
+            });
+            sendResponse("Turn off Task available noti");
+        }
+        return true;
+
+    }
+
+    // 5.1. Check reload page mode
+    if (Object.getOwnPropertyNames(request) == "checkAutoReload") {
+        chrome.storage.local.get(["autoReload", "autoReloadEvery"], (items)=>{
+            sendResponse([items.autoReload, items.autoReloadEvery]);
+        });
+        return true;
+    }
+
+    // 5.2. Create tastk noitification
+    if (Object.getOwnPropertyNames(request) == "createAvalableTaskNoiti") {
+        if (request.createAvalableTaskNoiti == "true") {
+            chrome.storage.local.get(["taskAvailableNotiTitle", "taskAvailableNotiContent"], (items)=>{
+                chrome.notifications.create({
+                    title: items.taskAvailableNotiTitle,
+                    message: items.taskAvailableNotiContent,
+                    iconUrl: "/assets/imgs/icons/ewoq-logo.png",
+                    type: "basic"
+                })
+            });
+        }
+        return true;
+
+    }
+
+    // 5.3 Get tast available noti sound
+    if (Object.getOwnPropertyNames(request) == "taskAvailableNotiSound") {
+        chrome.storage.local.get(["taskAvailableNotiSound"], (items) => {
+            sendResponse(items.taskAvailableNotiSound);
+        });
+        return true;
+
+    }
+
+    // 5.3.1. Get loop notification sound
+    if (Object.getOwnPropertyNames(request) == "getTaskAvailableLoopNoti") {
+        if (request.getTaskAvailableLoopNoti == "true") {
+
+            chrome.storage.local.get(["taskAvailableLoopNoti"], (items)=>{
+                sendResponse(items.taskAvailableLoopNoti);
+            });
+        }
+        return true;
+
+    }
+
+    // 5.3.2. Get and return task avail noti sound
+    if (Object.getOwnPropertyNames(request) == "getResFile") {
+        if (request.getResFile == "taskAvailableNotiSound") {
+
+            chrome.storage.local.get(["taskAvailableNotiSoundFileName"], (items)=>{
+                let fileName = items.taskAvailableNotiSoundFileName;
+                chrome.storage.local.get(["taskAvailNotiSoundCustom"], async (items)=>{
+                    let soundUrl = "";
+                    if (items.taskAvailNotiSoundCustom == false) {
+                        soundUrl = chrome.runtime.getURL("res/sounds/" + fileName);
+                    } else {
+                        soundUrl = chrome.runtime.getURL("res/sounds/customs/" + fileName);
+                    }
+                    //
+                    let isFileExists = await isUrlFound(soundUrl);
+                    if (!isFileExists) {
+                        soundUrl = chrome.runtime.getURL("res/sounds/vintage-telephone-ringtone.mp3");
+                        isFileExists = await isUrlFound(soundUrl);
+                        if (!isFileExists) {
+                            // https://.... sound source
+                            soundUrl = chrome.runtime.getURL("res/sounds/vintage-telephone-ringtone.mp3");
+                            isFileExists = await isUrlFound(soundUrl);
+                            sendResponse(soundUrl);
+                        }
+                        else {
+                            sendResponse(soundUrl);
+                        }
+                    }
+                    else {
+                        sendResponse(soundUrl);
+                    }
+                });
+
+            });
+        }
+        return true;
+
+    }
+
+    // 5.3.4 Check custom sound file
+    if (Object.getOwnPropertyNames(request) == "checkCustomSoundFile") {
+        let a = async () => {
+            let soundUrl = chrome.runtime.getURL("res/sounds/customs/" + request.checkCustomSoundFile);
+            let isFileExists = await isUrlFound(soundUrl);
+            sendResponse(isFileExists);
+        }
+        a();
+        return true;
+
+    }
+
+});
+
+
+// ============ Context menu ============
+// === Context menu create
 chrome.contextMenus.removeAll(()=>{
 
     // 1
@@ -642,7 +664,7 @@ chrome.contextMenus.removeAll(()=>{
 
 });
 
-// Context menu click event
+// === Context menu click event
 chrome.contextMenus.onClicked.addListener( (id, tab)=>{
     // 1. Decrease counter
     if (id.menuItemId == 1) {
@@ -743,28 +765,8 @@ chrome.contextMenus.onClicked.addListener( (id, tab)=>{
     }
 });
 
-// Increase counter when click to extensions icon
-chrome.action.onClicked.addListener((tab) => {
-    chrome.storage.local.get(["totalClick"], (items)=>{
-        let totalClick = 0;
-        if (items.totalClick != undefined) {
-            totalClick = parseInt(items.totalClick);
-        }
-        totalClick++;
-        chrome.action.setBadgeText({ text: totalClick.toString() });
-        chrome.storage.local.set({ totalClick: totalClick.toString() });
 
-    });
-
-    updateLastClick();
-
-});
-
-
-
-
-// =========== Test
-
+// =========== Test ==========
 // setTimeout(() => {
 //     let ip = "31.171.154.220";
 //     fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
@@ -805,46 +807,3 @@ chrome.action.onClicked.addListener((tab) => {
 //     return true;
 // }
 
-
-
-// function updateMode() {
-//     chrome.storage.local.get(["autoCount"], (items) => {
-//         if (items.autoCount == true) {
-//             chrome.action.setIcon({ path: "/icon/icon_auto.png" });
-//             chrome.contextMenus.update("1", {
-//                 title: "Auto count: ON"
-//             });
-//         }
-//         else {
-//             chrome.contextMenus.update("1", {
-//                 title: "Auto count: OFF"
-//             });
-//             chrome.action.setIcon({ path: "./icon/icon_manual.png" });
-//         }
-//     });
-// }
-
-// setInterval(updateMode, 2000);
-
-// Test
-// setTimeout(() => {
-//     var startbtn = document.getElementsByClassName("start-button");
-//     var nta = document.getElementsByClassName("no-tasks-message");
-
-//     startbtn[0].style.backgroundColor = "blue"
-//     nta[0].style.display = "none"
-
-
-//      let soundurl = "chrome-extension://mpnmhdjdjmehhkopjdogbbjobeneeabf/res/sounds/doit.mp3"
-
-//     for (const strttxt of document.getElementsByClassName("content")) {
-//         if (strttxt.textContent.includes("Start Next Task")) {
-//             strttxt.style.color = "white"
-//         }
-//     }
-
-// audioElement = document.createElement('audio');
-// audioElement.innerHTML = '<source src="' + soundurl + '" type="audio/mpeg" />'
-// audioElement.play();
-
-// }, 10000)
