@@ -300,6 +300,19 @@ $(document).ready(() => {
             $("#txtWarningTurnOnAutoPlayOnReload").addClass("d-none");
             console.log("Turn off auto reload")
         }
+
+        // Reload EWOQ page when switch auto reload mode
+        (async () => {
+            let url = "https://rating.ewoq.google.com/";
+            var tabs = await chrome.tabs.query({});
+            tabs.forEach((tab) => {
+                if (tab.url.includes(url)) {
+                    console.log(tab.id);
+                    chrome.tabs.reload(tab.id, () => { });
+                }
+            });
+        })();
+
     })
 
     // 5.1.1 Get and set select time reload to local

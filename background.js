@@ -18,7 +18,7 @@ const isUrlFound = async (url) => {
 }
 
 // Get current time
-const getCurrentTime = ()=>{
+const getCurrentTime = () => {
     let currentdate = new Date();
     let currentTime =
         currentdate.getDate() +
@@ -37,7 +37,7 @@ const getCurrentTime = ()=>{
 }
 
 // Update last click
-const updateLastClick = ()=>{
+const updateLastClick = () => {
     let lastClickTime = getCurrentTime();
     chrome.storage.local.set({ "lastClick": lastClickTime });
     chrome.contextMenus.update("7", {
@@ -45,7 +45,7 @@ const updateLastClick = ()=>{
     });
 
     //
-    chrome.storage.local.get(["clickHistory"], (items)=> {
+    chrome.storage.local.get(["clickHistory"], (items) => {
         let his = items.clickHistory;
         if (his.length < 200) {
             his.push(lastClickTime);
@@ -114,12 +114,12 @@ chrome.runtime.onInstalled.addListener((reason) => {
                 chrome.storage.local.set({ "autoReload": false })
             }
             //
-            if(items.isAllowedEwoqAutoPlaySound == undefined){
-                chrome.storage.local.set({"isAllowedEwoqAutoPlaySound": false})
+            if (items.autoReloadEvery == undefined) {
+                chrome.storage.local.set({ "autoReloadEvery": 300 })
             }
             //
-            if(items.autoReloadEvery == undefined){
-                chrome.storage.local.set({"autoReloadEvery": 300})
+            if (items.isAllowedEwoqAutoPlaySound == undefined) {
+                chrome.storage.local.set({ "isAllowedEwoqAutoPlaySound": false })
             }
         })
     }
@@ -131,7 +131,7 @@ chrome.runtime.onInstalled.addListener((reason) => {
         tabs.forEach((tab) => {
             if (tab.url.includes(url)) {
                 console.log(tab.id);
-                chrome.tabs.remove(tab.id, ()=>{ });
+                chrome.tabs.remove(tab.id, () => { });
             }
         });
     })();
@@ -140,7 +140,7 @@ chrome.runtime.onInstalled.addListener((reason) => {
 
 // ============ On load/restart listener ============
 // Load current when restart extension/browser
-setTimeout(()=>{
+setTimeout(() => {
     chrome.storage.local.get([
         "totalClick",
         "lastClick",
@@ -149,7 +149,7 @@ setTimeout(()=>{
         "autoSubmit",
         "taskAvailableNoti"
 
-    ], (items)=>{
+    ], (items) => {
 
         let totalClick = items.totalClick;
         let autoCount = items.autoCount ? "ON" : "OFF";
@@ -232,7 +232,7 @@ setTimeout(()=>{
 // ============ On click extension icon listener ============
 // Increase counter when click to extensions icon
 chrome.action.onClicked.addListener((tab) => {
-    chrome.storage.local.get(["totalClick"], (items)=>{
+    chrome.storage.local.get(["totalClick"], (items) => {
         let totalClick = 0;
         if (items.totalClick != undefined) {
             totalClick = parseInt(items.totalClick);
@@ -249,7 +249,7 @@ chrome.action.onClicked.addListener((tab) => {
 
 
 // ============ Message listener ============
-chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     /*************** GEENERAL SETTINGS ***************/
     // 1. Set total click
@@ -299,9 +299,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     // 1.0. Auto count
     if (Object.getOwnPropertyNames(request) == "autoCount") {
         if (request.autoCount == "true") {
-            chrome.storage.local.get(["autoCount"], (items)=>{
+            chrome.storage.local.get(["autoCount"], (items) => {
                 if (items.autoCount == true) {
-                    chrome.storage.local.get(["totalClick"], (items)=>{
+                    chrome.storage.local.get(["totalClick"], (items) => {
                         let newTotalClick = parseInt(items.totalClick) + 1;
                         chrome.storage.local.set({ totalClick: newTotalClick });
                         chrome.action.setBadgeText({ text: newTotalClick.toString() });
@@ -323,7 +323,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     if (Object.getOwnPropertyNames(request) == "getCountTaskTimeMode") {
         if (request.getCountTaskTimeMode == "true") {
 
-            chrome.storage.local.get(["countTime"], (items)=>{
+            chrome.storage.local.get(["countTime"], (items) => {
                 sendResponse(items.countTime);
             });
         }
@@ -355,7 +355,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     // 3. Get auto submit mode
     if (Object.getOwnPropertyNames(request) == "getAutoSubmitMode") {
         if (request.getAutoSubmitMode == "true") {
-            chrome.storage.local.get(["autoSubmit"], (items)=>{
+            chrome.storage.local.get(["autoSubmit"], (items) => {
                 sendResponse(items.autoSubmit);
             });
         }
@@ -388,7 +388,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     // 3.1. Get time auto submit after
     if (Object.getOwnPropertyNames(request) == "getAutoSubmitAfter") {
         if (request.getAutoSubmitAfter == "true") {
-            chrome.storage.local.get(["autoSubmitAfter"], (items)=>{
+            chrome.storage.local.get(["autoSubmitAfter"], (items) => {
                 sendResponse(items.autoSubmitAfter);
             });
         }
@@ -399,7 +399,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     // 3.2. Get show auto submit while remainning
     if (Object.getOwnPropertyNames(request) == "getShowAutoSubmitWhileRemaining") {
         if (request.getShowAutoSubmitWhileRemaining == "true") {
-            chrome.storage.local.get(["showAutoSubmitWhileRemaining"], (items)=>{
+            chrome.storage.local.get(["showAutoSubmitWhileRemaining"], (items) => {
                 sendResponse(items.showAutoSubmitWhileRemaining);
             });
         }
@@ -410,9 +410,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     // 3.3. Auto submit count
     if (Object.getOwnPropertyNames(request) == "autoSubmitCount") {
         if (request.autoSubmitCount == "true") {
-            chrome.storage.local.get(["autoCount", "autoSubmit"], (items)=>{
+            chrome.storage.local.get(["autoCount", "autoSubmit"], (items) => {
                 if (items.autoSubmit == true && items.autoCount == false) {
-                    chrome.storage.local.get(["totalClick"], (items)=>{
+                    chrome.storage.local.get(["totalClick"], (items) => {
                         let newTotalClick = parseInt(items.totalClick) + 1;
                         chrome.storage.local.set({ totalClick: newTotalClick });
                         chrome.action.setBadgeText({ text: newTotalClick.toString() });
@@ -433,7 +433,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
 
     // 4. Alert VPN disconnected mode
     if (Object.getOwnPropertyNames(request) == "getAlertVPNDisMode") {
-        chrome.storage.local.get(["alertVPNDisconnected"], (items)=>{
+        chrome.storage.local.get(["alertVPNDisconnected"], (items) => {
             sendResponse(items.alertVPNDisconnected);
         });
         return true;
@@ -459,7 +459,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     if (Object.getOwnPropertyNames(request) == "taskAvailableNoti") {
         if (request.taskAvailableNoti == "true") {
 
-            chrome.storage.local.get(["taskAvailableNoti"], (items)=>{
+            chrome.storage.local.get(["taskAvailableNoti"], (items) => {
                 sendResponse(items.taskAvailableNoti);
             });
         }
@@ -491,7 +491,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
 
     // 5.1. Check reload page mode
     if (Object.getOwnPropertyNames(request) == "checkAutoReload") {
-        chrome.storage.local.get(["autoReload", "autoReloadEvery"], (items)=>{
+        chrome.storage.local.get(["autoReload", "autoReloadEvery"], (items) => {
             sendResponse([items.autoReload, items.autoReloadEvery]);
         });
         return true;
@@ -500,7 +500,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     // 5.2. Create tastk noitification
     if (Object.getOwnPropertyNames(request) == "createAvalableTaskNoiti") {
         if (request.createAvalableTaskNoiti == "true") {
-            chrome.storage.local.get(["taskAvailableNotiTitle", "taskAvailableNotiContent"], (items)=>{
+            chrome.storage.local.get(["taskAvailableNotiTitle", "taskAvailableNotiContent"], (items) => {
                 chrome.notifications.create({
                     title: items.taskAvailableNotiTitle,
                     message: items.taskAvailableNotiContent,
@@ -526,7 +526,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     if (Object.getOwnPropertyNames(request) == "getTaskAvailableLoopNoti") {
         if (request.getTaskAvailableLoopNoti == "true") {
 
-            chrome.storage.local.get(["taskAvailableLoopNoti"], (items)=>{
+            chrome.storage.local.get(["taskAvailableLoopNoti"], (items) => {
                 sendResponse(items.taskAvailableLoopNoti);
             });
         }
@@ -538,9 +538,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
     if (Object.getOwnPropertyNames(request) == "getResFile") {
         if (request.getResFile == "taskAvailableNotiSound") {
 
-            chrome.storage.local.get(["taskAvailableNotiSoundFileName"], (items)=>{
+            chrome.storage.local.get(["taskAvailableNotiSoundFileName"], (items) => {
                 let fileName = items.taskAvailableNotiSoundFileName;
-                chrome.storage.local.get(["taskAvailNotiSoundCustom"], async (items)=>{
+                chrome.storage.local.get(["taskAvailNotiSoundCustom"], async (items) => {
                     let soundUrl = "";
                     if (items.taskAvailNotiSoundCustom == false) {
                         soundUrl = chrome.runtime.getURL("res/sounds/" + fileName);
@@ -585,12 +585,35 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse)=>{
 
     }
 
+    // 0.0. Check EWOQ is allowed play sound without user interact first or not
+    if (Object.getOwnPropertyNames(request) == "getIsAllowedEwoqAutoPlaySound") {
+        chrome.storage.local.get(["isAllowedEwoqAutoPlaySound"], (items) => {
+            sendResponse(items.isAllowedEwoqAutoPlaySound);
+        })
+        return true;
+    }
+
+    // 0.1. Set EWOQ is allowed play sound without user interact first or not
+    if (Object.getOwnPropertyNames(request) == "setIsAllowedEwoqAutoPlaySound") {
+        chrome.storage.local.set({ "isAllowedEwoqAutoPlaySound": request.setIsAllowedEwoqAutoPlaySound })
+        chrome.storage.local.get(["isAllowedEwoqAutoPlaySound"], (items) => {
+            sendResponse(items.isAllowedEwoqAutoPlaySound);
+        })
+        return true;
+    }
+
+    // 0.2. Get extension url
+    if (Object.getOwnPropertyNames(request) == "getExtensionUrl"){
+        sendResponse(chrome.runtime.getURL(""));
+        return true;
+    }
+
 });
 
 
 // ============ Context menu ============
 // === Context menu create
-chrome.contextMenus.removeAll(()=>{
+chrome.contextMenus.removeAll(() => {
 
     // 1
     chrome.contextMenus.create({
@@ -642,7 +665,7 @@ chrome.contextMenus.removeAll(()=>{
     });
 
 
-    chrome.storage.local.get(["lastClick"], (items)=>{
+    chrome.storage.local.get(["lastClick"], (items) => {
         chrome.contextMenus.update("7", {
             title: ("Last click: " + items.lastClick)
         });
@@ -665,10 +688,10 @@ chrome.contextMenus.removeAll(()=>{
 });
 
 // === Context menu click event
-chrome.contextMenus.onClicked.addListener( (id, tab)=>{
+chrome.contextMenus.onClicked.addListener((id, tab) => {
     // 1. Decrease counter
     if (id.menuItemId == 1) {
-        chrome.storage.local.get(["totalClick"], (items)=>{
+        chrome.storage.local.get(["totalClick"], (items) => {
             let totalClick = parseInt(items.totalClick);
             if (totalClick > 0) {
                 totalClick = totalClick - 1;
@@ -687,7 +710,7 @@ chrome.contextMenus.onClicked.addListener( (id, tab)=>{
     }
     // 3. Auto count task EWOQ
     if (id.menuItemId == 3) {
-        chrome.storage.local.get(["autoCount"], (items)=>{
+        chrome.storage.local.get(["autoCount"], (items) => {
             if (items.autoCount == true) {
                 chrome.storage.local.set({ "autoCount": false });
                 chrome.contextMenus.update("3", {
@@ -707,7 +730,7 @@ chrome.contextMenus.onClicked.addListener( (id, tab)=>{
     }
     // 4. Count task time
     if (id.menuItemId == 4) {
-        chrome.storage.local.get(["countTime"], (items)=>{
+        chrome.storage.local.get(["countTime"], (items) => {
             if (items.countTime == true) {
                 chrome.storage.local.set({ "countTime": false });
                 chrome.contextMenus.update("4", {
@@ -725,7 +748,7 @@ chrome.contextMenus.onClicked.addListener( (id, tab)=>{
     }
     // 5. Auto submit
     if (id.menuItemId == 5) {
-        chrome.storage.local.get(["autoSubmit"], (items)=>{
+        chrome.storage.local.get(["autoSubmit"], (items) => {
             if (items.autoSubmit == true) {
                 chrome.storage.local.set({ "autoSubmit": false });
                 chrome.contextMenus.update("5", {
@@ -743,7 +766,7 @@ chrome.contextMenus.onClicked.addListener( (id, tab)=>{
     }
     // 6. Task available notification
     if (id.menuItemId == 6) {
-        chrome.storage.local.get(["taskAvailableNoti"], (items)=>{
+        chrome.storage.local.get(["taskAvailableNoti"], (items) => {
             if (items.taskAvailableNoti == true) {
                 chrome.storage.local.set({ "taskAvailableNoti": false });
                 chrome.contextMenus.update("6", {

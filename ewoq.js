@@ -3,7 +3,13 @@ window.onload = () => {
     console.log("Imported extension script")
 
     var headerContainer = document.getElementsByClassName("dense-header")[0];
+    var audioElement = document.createElement('audio');
     var taskTimeCounter = 1;
+    var isNotiSoundPlaying = false;
+    var isNotiShowing = false;
+    var notiCountdown = 0;
+    var isInteract = false;
+    var autoReloadCounter = 0;
 
     // Function convert time
     const convertSecondToMinute = (second) => {
@@ -19,7 +25,6 @@ window.onload = () => {
             }
         }
     }
-
 
     // AUTO SUBMIT mode
     const checkAndShowAutoSubmit = () => {
@@ -413,11 +418,6 @@ window.onload = () => {
     checkNewTaskOnReload();
 
     // ======================= Task available notification ==============
-    var isNotiSoundPlaying = false;
-    var isNotiShowing = false;
-    var notiCountdown = 0;
-    var isInteract = false;
-    var audioElement = document.createElement('audio');
     setInterval(() => {
         let btnStart = document.getElementsByClassName("start-button")[0];
         if (btnStart != null) {
@@ -469,10 +469,17 @@ window.onload = () => {
                                     chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, (response) => {
                                         let soundUrl = response;
                                         audioElement.innerHTML = '<source src="' + soundUrl + '" type="audio/mpeg" />'
-                                        if (isInteract) {
-                                            audioElement.play();
+                                        audioElement.play().then(() => {
                                             isNotiSoundPlaying = true;
-                                        }
+                                        })
+                                            .catch(function (error) {
+                                                let playErrMsg = "play() failed because the user didn't interact with the document first";
+                                                if (error.toString().includes(playErrMsg)) {
+                                                    chrome.runtime.sendMessage({ "setIsAllowedEwoqAutoPlaySound": false }, (response) => { })
+                                                    isNotiSoundPlaying = false;
+                                                }
+                                            });
+
 
                                         chrome.runtime.sendMessage({ "getTaskAvailableLoopNoti": "true" }, (response) => {
                                             let loopMode = response;
@@ -511,6 +518,111 @@ window.onload = () => {
     }, 2000)
 
 
+    // Auto reload mode
+    chrome.runtime.sendMessage({ "checkAutoReload": true }, (response) => {
+        autoReloadCounter = response[1];
+        if (response[0] == true) {
+            let autoReloadBox = document.createElement("div");
+            let autoReloadBoxContent = '<div id="auto-reload-box"> <div> <p style="display: inline; color: white;">Tự động reload sau '
+                + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-reload">' + convertSecondToMinute(autoReloadCounter) + 's</strong></p></div>'
+                + '<div><p style="margin: 0; color: white; font-size: 12px;">(Tự động reload cũng sẽ bị hủy khi có task <br> Refresh lại trang để kích hoạt lại)</p></div>'
+                + '<div><button id="btn-cancel-auto-reload" style="margin-top: 5px; cursor: pointer;">Hủy</button></div>'
+                + '</div>';
+            autoReloadBox.innerHTML = autoReloadBoxContent;
+            headerContainer.appendChild(autoReloadBox);
+
+            let btnCancelAutoReload = document.getElementById("btn-cancel-auto-reload");
+            if (btnCancelAutoReload != null) {
+                btnCancelAutoReload.addEventListener("click", () => {
+                    console.log("Canceled auto reload")
+                    clearInterval(a);
+                    headerContainer.removeChild(autoReloadBox);
+                })
+            }
+
+            let a = setInterval(() => {
+                autoReloadCounter--;
+                console.log(autoReloadCounter);
+                let txt = document.getElementById("txt-time-count-reload");
+                if(txt != null){
+                    txt.innerText = convertSecondToMinute(autoReloadCounter) + "s";
+                }
+                else{
+                    clearInterval(a);
+                }
+                
+                if (autoReloadCounter == 0) {
+                    window.location.reload();
+                    clearInterval(a);
+                }
+
+            }, 1000)
+        }
+    })
+
+    // 
+    const checkIsAllowedEwoqAutoPlay = () => {
+        chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, (response) => {
+            let testAudioElement = document.createElement("audio");
+            let testSoundUrl = response;
+            testAudioElement.innerHTML = '<source muted src="' + testSoundUrl + '" type="audio/mpeg" />'
+
+            testAudioElement.volume = 0.00001;
+            testAudioElement.play().then(() => {
+                chrome.runtime.sendMessage({ "setIsAllowedEwoqAutoPlaySound": true }, (response) => { })
+                setTimeout(() => {
+                    testAudioElement.pause();
+                }, 500)
+            })
+                .catch((error) => {
+                    let playErrMsg = "play() failed because the user didn't interact with the document first";
+                    if (error.toString().includes(playErrMsg)) {
+                        chrome.runtime.sendMessage({ "setIsAllowedEwoqAutoPlaySound": false }, (response) => { });
+                        let headerContainer = document.getElementsByClassName("dense-header")[0];
+                        let bx = document.createElement("div");
+                        bx.innerHTML = '<div class="task-avail-noti-click-sound-box">'
+                            + '<p><strong style="color: red;">Chú ý: </strong>Cảnh báo âm thanh đang bật ! <br></p>'
+                            + '<p>Trang web sẽ không tự động phát âm thanh nếu bạn không tương tác ít nhất 1 lần trên website.</p>'
+                            + '<p> <span style="color: orange;"> >> </span> Nhấn 1 lần vào bất cứ nơi nào trên trang để có thể phát âm thanh</p>'
+                            + '<p> <span style="color: orange;"> >> </span> Hoặc làm theo '
+                            + '<a href="#">Hướng dẫn này </a>'
+                            + 'để luôn cho phép trang web tự động phát âm thanh mà không cần tương tác trước.</p>'
+                            + '</div>';
+
+
+                        //
+                        chrome.runtime.sendMessage({ "getExtensionUrl": "true" }, (response) => {
+                            let a = document.getElementById("linkAlowAutoPlayInstruction");
+                            a.href = response + "USERGUIDE.html";
+                        })
+
+                        //
+                        chrome.runtime.sendMessage({ "checkAutoReload": true }, (response) => {
+                            if (response[0] == true) {
+                                let box = document.getElementsByClassName("task-avail-noti-click-sound-box")[0];
+                                box.style.top = "110px";
+                            }
+                        })
+
+                        headerContainer.appendChild(bx);
+                    }
+                });
+        })
+
+    }
+
+    chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
+        if (response == true) {
+            chrome.runtime.sendMessage({ "taskAvailableNotiSound": "true" }, (response) => {
+                if (response == true) {
+                    checkIsAllowedEwoqAutoPlay()
+                }
+            })
+
+        }
+    })
+
+    // Body click event
     document.body.addEventListener("click", () => {
         let tans = document.getElementsByClassName("task-avail-noti-click-sound-box")[0];
         if (tans != null) {
@@ -519,23 +631,7 @@ window.onload = () => {
         isInteract = true;
     })
 
-    chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
-        if (response == true) {
-            chrome.runtime.sendMessage({ "taskAvailableNotiSound": "true" }, (response) => {
-                if (response == true) {
-                    let bx = document.createElement("div");
-                    bx.innerHTML = '<div class="task-avail-noti-click-sound-box">'
-                        + '<div>'
-                        + '<p style="margin: 5px; display: inline;color: white; font-size: large;font-weight: 900;">Cảnh báo âm thanh đang bật !!!! <br>Nhấn 1 lần vào bất cứ nơi nào <br> trên trang để có thể phát âm thanh</p>'
-                        + '</div>'
-                        + '</div>';
 
-                    headerContainer.appendChild(bx);
-                }
-            })
-
-        }
-    })
 
     // Take a break button
     const takeABreakClickEvent = () => {
