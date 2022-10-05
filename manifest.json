@@ -44,7 +44,7 @@
         {
             "resources": [
                 "/res/sounds/*.mp3",
-                "USERGUIDE.html"
+                "/USERGUIDE.html"
             ],
             "matches": [
                 "<all_urls>"

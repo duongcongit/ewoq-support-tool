@@ -621,7 +621,7 @@ window.onload = () => {
                             + '<p>Trang web sẽ không tự động phát âm thanh nếu bạn không tương tác ít nhất 1 lần trên website.</p>'
                             + '<p> <span style="color: orange;"> >> </span> Nhấn 1 lần vào bất cứ nơi nào trên trang để có thể phát âm thanh</p>'
                             + '<p> <span style="color: orange;"> >> </span> Hoặc làm theo '
-                            + '<a href="#">Hướng dẫn này </a>'
+                            + '<a target="_blank" id="linkAlowAutoPlayInstruction" href="#">Hướng dẫn này </a>'
                             + 'để luôn cho phép trang web tự động phát âm thanh mà không cần tương tác trước.</p>'
                             + '</div>';
 
@@ -629,7 +629,7 @@ window.onload = () => {
                         //
                         chrome.runtime.sendMessage({ "getExtensionUrl": "true" }, (response) => {
                             let a = document.getElementById("linkAlowAutoPlayInstruction");
-                            a.href = response + "USERGUIDE.html";
+                            a.href = response + "USERGUIDE.html#allowEwoqAutoPlaySoundInstructions";
                         })
 
                         //
