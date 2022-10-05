@@ -4,7 +4,6 @@
     width: fit-content;
     min-width: 56px;
 
-    /* background-color: aqua; */
     background-color: rgb(68,68,68);
     position: fixed;
     border-radius: 10px;
@@ -21,19 +20,17 @@
     top: -30px;
     border-width: 20px;
     border-style: solid;
-    /* border-color: transparent transparent aqua transparent; */
     border-color: transparent transparent rgb(68,68,68) transparent;
 }
 
 
 
-#autot-submit-box {
+#auto-submit-box {
     left: 40vw;
-    top: 66px;
+    top: 60px;
     width: fit-content;
     min-width: 50px;
 
-    /* background-color: aqua; */
     background-color: rgb(68,68,68);
     position: fixed;
     border-radius: 10px;
@@ -52,7 +49,7 @@
     display: inline;
 }
 
-#autot-submit-box::after {
+#auto-submit-box::after {
     content: "";
     position: absolute;
     top: -30px;
@@ -91,25 +88,7 @@
 }
 
 
-
-.dismiss-task-avail-noti-box {
-    left: 40vw;
-    top: 10px;
-    width: fit-content;
-    min-width: 200px;
-
-    /* background-color: aqua; */
-    background-color: rgb(68,68,68);
-    position: fixed;
-    border-radius: 10px;
-
-    padding: 9px 10px 0px 10px;
-
-    display: flex;
-    justify-content: center;
-    text-align: center;
-}
-
+/* ============= */
 .task-avail-noti-click-sound-box {
     right: calc(50vw - 240px);
     top: 10px;
@@ -149,6 +128,72 @@
 }
 
 
+/* ============= Network error ======= */
+.warning-network-error-box {
+    right: calc(50vw - 150px);
+    top: 10px;
+    width: 300px;
+    min-width: 200px;
+    background-color: rgb(68,68,68);
+    position: fixed;
+    border-radius: 10px;
+
+    padding: 9px 10px 0px 10px;
+
+    display: flex;
+
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    max-width: 680px;
+}
+
+
+.warning-network-error-box>p {
+    margin: 5px;
+    display: inline;
+    color: white;
+    font-size: large;
+    font-weight: 900;
+}
+
+.warning-network-error-box::after {
+    content: "";
+    position: absolute;
+    top: -30px;
+    border-width: 20px;
+    border-style: solid;
+    border-color: transparent transparent rgb(68,68,68) transparent;
+    align-self: center;
+}
+
+#btn-cancel-auto-close-tab-on-net-err {
+    width: 100px;
+    border-radius: 5px;
+    padding: 5px 10px 5px 10px;
+    border: 0px solid;
+    display: inline;
+    margin-bottom: 10px;
+}
+
+/* ================ */
+.dismiss-task-avail-noti-box {
+    left: 40vw;
+    top: 10px;
+    width: fit-content;
+    min-width: 200px;
+
+    background-color: rgb(68,68,68);
+    position: fixed;
+    border-radius: 10px;
+
+    padding: 9px 10px 0px 10px;
+
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
 
 .dismiss-task-avail-noti-box::after{
     content: "";
@@ -158,6 +203,8 @@
     border-style: solid;
     border-color: transparent transparent rgb(68,68,68) transparent;
 }
+
+
 
 
 

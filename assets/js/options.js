@@ -33,6 +33,7 @@ $(document).ready(() => {
         "taskAvailableNotiContent",
         "autoReload",
         "autoReloadEvery",
+        "autoCloseTabWhenNetErr",
         "taskAvailableLoopNoti",
         "taskAvailableNotiSound",
         "taskAvailNotiSoundCustom",
@@ -120,6 +121,15 @@ $(document).ready(() => {
         autoReloadSelect.innerHTML = inHtml;
 
 
+        // Auto close Ewoq when VPN dis
+        if(items.autoCloseTabWhenNetErr == true){
+            $("#autoCloseEwoqSwitch").attr("checked", true);
+        }
+        else{
+            $("#autoCloseEwoqSwitch").attr("checked", false);
+        }
+
+
         // == Task available noti sound
         if (items.taskAvailableNotiSound == true) {
             $("#taskAvailableNotiSoundSwitch").attr("checked", true);
@@ -200,7 +210,7 @@ $(document).ready(() => {
     })
     // 2.1. Box pos
     $('input[name="grRadioCountTimePos"]').on("click", () => {
-        let pos = parseInt(this.value);
+        let pos = parseInt($('input[name="grRadioCountTimePos"]:checked').val());
         chrome.storage.local.set({ "countTimeBoxPos": pos });
         let countTimeImgCont = document.getElementById("countTimeImgCont");
         countTimeImgCont.innerHTML = '<img src="/assets/imgs/options/count-time/' + pos + '%.png" alt="">';
@@ -321,7 +331,19 @@ $(document).ready(() => {
         chrome.storage.local.set({ "autoReloadEvery": autoReloadEvery });
     })
 
-    // 5.2. Save change custom noti
+    // 5.2. Auto close Ewoq when VPN disconnect switch mode
+    $(document).on("click", "#autoCloseEwoqSwitch", ()=>{
+        if ($("#autoCloseEwoqSwitch").is(":checked")) {
+            chrome.storage.local.set({ "autoCloseTabWhenNetErr": true });
+            console.log("Turn on auto close")
+        }
+        else {
+            chrome.storage.local.set({ "autoCloseTabWhenNetErr": false });
+            console.log("Turn off auto close")
+        }
+    })
+
+    // 5.3. Save change custom noti
     $(document).on("click", "#btn-save-custom-noti", () => {
         let title = $("#inputTitleNoti").val();
         let content = $("#inputContentNoti").val();
@@ -331,7 +353,7 @@ $(document).ready(() => {
         });
     })
 
-    // 5.3. Task avail notif sound
+    // 5.4. Task avail notif sound
     $(document).on("click", "#taskAvailableNotiSoundSwitch", () => {
         if ($("#taskAvailableNotiSoundSwitch").is(":checked")) {
             chrome.storage.local.set({ "taskAvailableNotiSound": true });
@@ -352,7 +374,7 @@ $(document).ready(() => {
 
     })
 
-    // 5.3.1. Loop mode
+    // 5.4.1. Loop mode
     $(document).on("click", "#radioBtnOneTimeSound", () => {
         chrome.storage.local.set({ "taskAvailableLoopNoti": false });
         console.log("Turn off loop noti")
@@ -362,7 +384,7 @@ $(document).ready(() => {
         console.log("Turn on loop noti")
     })
 
-    // 5.3.2. Sound
+    // 5.4.2. Sound
     $(document).on("click", "#radioSoundExist", () => {
         chrome.storage.local.set({ "taskAvailNotiSoundCustom": false });
         chrome.storage.local.get([
@@ -406,7 +428,7 @@ $(document).ready(() => {
         demoSoundPlaying = false;
     })
 
-    // 5.3.2.1. Select sound
+    // 5.4.2.1. Select sound
     $(document).on("change", "#taskAvailNotiSoundSelect", () => {
         let soundFileName = $("#taskAvailNotiSoundSelect option:selected").val();
         chrome.storage.local.set({ "taskAvailableNotiSoundFileName": soundFileName });
@@ -424,7 +446,7 @@ $(document).ready(() => {
         console.log("Changed sound name to: " + soundFileName);
     })
 
-    // 5.3.2.2. Play demo sound
+    // 5.4.2.2. Play demo sound
     var demoSoundPlaying = false;
     var demoSound = document.createElement("audio");
     $(document).on("click", "#btnDemoSound", () => {
@@ -456,7 +478,7 @@ $(document).ready(() => {
         }
     })
 
-    // 5.3.2.3. Get sound list
+    // 5.4.2.3. Get sound list
     const getSoundList = (type) => {
 
         chrome.storage.local.get([
@@ -488,7 +510,7 @@ $(document).ready(() => {
 
     }
 
-    // 5.3.2.4. Add custom sound
+    // 5.4.2.4. Add custom sound
     $(document).on("click", "#btnAddCustomSound", async () => {
         let fileName = $("#imputCustomSound").val();
         chrome.runtime.sendMessage({ "checkCustomSoundFile": fileName.toString() }, (response) => {

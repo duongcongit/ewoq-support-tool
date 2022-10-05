@@ -241,32 +241,45 @@
                                 <div class="row mt-2 custom-task-avail-noti">
                                     <hr>
                                     <div class="col-12 row">
-                                        <div class="col-10 ps-5 mt-2 row d-flex justify-content-start">
+                                        <div class="col-11 ps-5 mt-2 row d-flex justify-content-start">
                                             <p class="col-sm-8 col-md-8 col-lg-4"><i
                                                     class="bi bi-arrow-clockwise text-info me-2 fs-5"></i>Tự động reload
                                                 trong khi chờ mỗi: </p>
                                             <select class="form-select mb-3 col-2" id="autoReloadSelect"
                                                 style="max-width: 100px; max-height: 50px;" disabled>
-
                                             </select>
                                         </div>
-                                        <div class="col-2 mt-3 form-check form-switch d-flex justify-content-end">
+                                        <div class="col-1 mt-3 form-check form-switch d-flex justify-content-end">
                                             <input class="form-check-input" id="autoReloadSwitch" type="checkbox">
                                         </div>
                                     </div>
-                                    <div class="col-12 mb-3 bg-warning rounded p-2 ms-4 me-4 d-none" style="width: fit-content;" id="txtWarningTurnOnAutoPlayOnReload">
+                                    <div class="col-12 mb-3 bg-warning rounded p-2 ms-4 me-4 d-none"
+                                        style="width: fit-content;" id="txtWarningTurnOnAutoPlayOnReload">
                                         <strong class="text-danger">Chú ý: </strong>
                                         <span>
                                             Bạn đang bật cảnh báo âm thanh khi có task.
-                                            Để chuông cảnh báo có thể phát sau mỗi lần tự động reload trang, hãy chắc chắn bạn đã làm theo 
-                                            <a target="_blank"href="#">Hướng Dẫn</a>
+                                            Để chuông cảnh báo có thể phát sau mỗi lần tự động reload trang, hãy chắc
+                                            chắn bạn đã làm theo
+                                            <a target="_blank" href="#">Hướng Dẫn</a>
                                         </span>
+                                    </div>
+                                    <hr>
+                                    <div class="col-12 row">
+                                        <div class="col-10 ps-5 mt-2 row d-flex justify-content-start">
+                                            <p>
+                                                <i class="bi bi-x-circle text-info me-2 fs-5"></i>
+                                                Tự động đóng tab sau 15 giây khi bị mất kết nối VPN 
+                                            </p>
+                                        </div>
+                                        <div class="col-2 mt-3 form-check form-switch d-flex justify-content-end">
+                                            <input class="form-check-input" id="autoCloseEwoqSwitch" type="checkbox">
+                                        </div>
                                     </div>
                                     <hr>
                                     <div class="col-md-12 bg-light p-3 pb-1 mt-0 setting-items container-fluid">
                                         <div class="row">
                                             <div class="col-12">
-                                                <p>Tùy chỉnh thông báo ngữ cảnh</p>
+                                                <p>Tùy chỉnh thông báo biểu ngữ</p>
                                             </div>
                                             <div class="col-12 row">
                                                 <div class="col-4 pt-2 ps-5">
@@ -307,12 +320,16 @@
                                             </div>
                                             <!--  -->
                                             <div class="col-12" id="taskAvailableNotiSoundOptions">
-                                                <div class="col-12 mb-3 bg-warning rounded p-2 ms-4 me-4" style="width: fit-content;">
+                                                <div class="col-12 mb-3 bg-warning rounded p-2 ms-4 me-4"
+                                                    style="width: fit-content;">
                                                     <strong class="text-danger">Chú ý: </strong>
                                                     <span>
-                                                        Do chính sách của Google, sau khi tải/tải lại trang âm thanh sẽ không được phép phát nếu người dùng chưa tương tác với trang web.
-                                                        Để chuông cảnh báo có thể phát mà không cần tương tác với trang trước, hãy chắc chắn bạn đã làm theo 
-                                                        <a target="_blank"href="#">Hướng Dẫn</a>
+                                                        Do chính sách của Google, sau khi tải/tải lại trang âm thanh sẽ
+                                                        không được phép phát nếu người dùng chưa tương tác với trang
+                                                        web.
+                                                        Để chuông cảnh báo có thể phát mà không cần tương tác với trang
+                                                        trước, hãy chắc chắn bạn đã làm theo
+                                                        <a target="_blank" href="#">Hướng Dẫn</a>
                                                     </span>
                                                 </div>
                                                 <div class="col-12 row ps-5 ms-1">

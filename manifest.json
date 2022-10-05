@@ -4,7 +4,7 @@
         "default_icon": "./icon/icon_manual.png"
     },
     "manifest_version": 3,
-    "version": "2.0",
+    "version": "2.1",
     "description": "",
     "permissions": [
         "activeTab",
@@ -42,10 +42,13 @@
     },
     "web_accessible_resources": [
         {
-          "resources": [ 
-            "/res/sounds/*.mp3"
-          ],
-          "matches": [ "<all_urls>" ]
+            "resources": [
+                "/res/sounds/*.mp3",
+                "USERGUIDE.html"
+            ],
+            "matches": [
+                "<all_urls>"
+            ]
         }
-    ]    
+    ]
 }

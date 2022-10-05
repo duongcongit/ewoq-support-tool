@@ -2,6 +2,7 @@ window.onload = () => {
 
     console.log("Imported extension script")
 
+    // Global variable
     var headerContainer = document.getElementsByClassName("dense-header")[0];
     var audioElement = document.createElement('audio');
     var taskTimeCounter = 1;
@@ -10,7 +11,19 @@ window.onload = () => {
     var notiCountdown = 0;
     var isInteract = false;
     var autoReloadCounter = 0;
+    var isAlertNetworkErrBoxShowing = false;
+    var isSubmitBtnEnabled = false;
 
+    // Body click event
+    document.body.addEventListener("click", () => {
+        let tans = document.getElementsByClassName("task-avail-noti-click-sound-box")[0];
+        if (tans != null) {
+            tans.remove();
+        }
+        isInteract = true;
+    })
+
+    /********** FUCNTION **********/
     // Function convert time
     const convertSecondToMinute = (second) => {
         if (second < 60) {
@@ -26,106 +39,22 @@ window.onload = () => {
         }
     }
 
-    // AUTO SUBMIT mode
-    const checkAndShowAutoSubmit = () => {
-        let submitButton = document.getElementsByClassName("submitTaskButton")[0];
-        let box = document.getElementById("autot-submit-box");
-        if (box != null) {
-            box.remove();
-        }
-        if (submitButton != null) {
-            chrome.runtime.sendMessage({ "getAutoSubmitMode": "true" }, (response) => {
-                if (response == true) {
-                    chrome.runtime.sendMessage({ "getAutoSubmitAfter": "true" }, (response) => {
-                        let timeAutoSubmit = parseInt(response);
-                        chrome.runtime.sendMessage({ "getShowAutoSubmitWhileRemaining": "true" }, (response) => {
-                            let showWhileRemainning = parseInt(response);
-                            let timeShow = timeAutoSubmit - showWhileRemainning + 1;
-                            let a = setInterval(() => {
-                                if (taskTimeCounter >= timeShow) {
-                                    //
-                                    let autoSubmitBox = document.createElement("div");
-                                    let autoSubmitBoxContent = '<div id="autot-submit-box"> <p style="margin: 0; display: inline; color: white;">Tự động submit sau '
-                                        + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-submit">' + convertSecondToMinute(timeAutoSubmit - taskTimeCounter + 1) + 's</strong></p> '
-                                        + '<button id="btn-cancel-auto-submit">Hủy</button> </div>';
-                                    let box = document.getElementById("autot-submit-box");
-                                    autoSubmitBox.innerHTML = autoSubmitBoxContent;
-                                    if (box != null) {
+    /********** MODE **********/
 
-                                    }
-                                    headerContainer.appendChild(autoSubmitBox);
-                                    // autoSubmitBox.style.display = "none";
-
-                                    let btnCancelAutoSubmit = document.getElementById("btn-cancel-auto-submit");
-                                    if (btnCancelAutoSubmit != null) {
-                                        document.getElementById("btn-cancel-auto-submit").addEventListener("click", () => {
-                                            console.log("Canceled asuto submit")
-                                            clearInterval(b);
-                                            headerContainer.removeChild(autoSubmitBox);
-                                        })
-                                    }
-
-
-                                    let b = setInterval(() => {
-                                        let autoSubmitCountDown = timeAutoSubmit - taskTimeCounter + 1;
-                                        let txtTimeCountAutoSubmit = document.getElementById("txt-time-count-submit");
-                                        if (txtTimeCountAutoSubmit != null) {
-                                            txtTimeCountAutoSubmit.innerText = convertSecondToMinute(autoSubmitCountDown) + "s";
-                                        }
-
-                                        if (autoSubmitCountDown == 0) {
-                                            // Click
-                                            document.getElementsByClassName("submitTaskButton")[0].click();
-                                            console.log("Had trigged click in auto submit mode")
-                                            //
-                                            chrome.runtime.sendMessage({ "autoSubmitCount": "true" }, (response) => {
-                                                if (response != "Auto submit false") {
-                                                    let alertClick = document.createElement("div");
-                                                    let alertClickContent = '<div id="al"><p style="margin: 0; display: inline; color: white;">' + response + '</p></div>';
-                                                    alertClick.innerHTML = alertClickContent;
-                                                    headerContainer.appendChild(alertClick);
-                                                    setTimeout(() => {
-                                                        headerContainer.removeChild(alertClick);
-                                                    }, 1000);
-
-                                                    console.log(response);
-                                                }
-                                            })
-                                            let box = document.getElementById("autot-submit-box");
-                                            if (box != null) {
-                                                box.remove();
-                                            }
-                                            clearInterval(b);
-                                        }
-                                        // console.log(autoSubmitCountDown)
-                                    }, 1000)
-
-                                    clearInterval(a);
-                                }
-
-
-                            }, 1000)
-
-                        });
-
-                    });
-
-
-                }
-
-            });
-        }
-    }
-
+    // ======= Auto count Submit button =======
     // Check if submit button is enabled or not
-    var isSubmitBtnEnabled = false;
     setInterval(() => {
         let btnSubmit = document.getElementsByClassName("submitTaskButton")[0];
-        if (btnSubmit.classList.contains("is-disabled")) {
-            isSubmitBtnEnabled = false;
+        if (btnSubmit != null) {
+            if (!btnSubmit.classList.contains("is-disabled")) {
+                isSubmitBtnEnabled = true;
+            }
+            else {
+                isSubmitBtnEnabled = false;
+            }
         }
         else {
-            isSubmitBtnEnabled = true;
+            isSubmitBtnEnabled = false;
         }
     }, 20)
 
@@ -177,7 +106,6 @@ window.onload = () => {
         }
 
     }
-
 
     // Set click listener for submit button
     const setClickListener = () => {
@@ -242,7 +170,7 @@ window.onload = () => {
     }
 
 
-    // ======== Count time when start new task ===========
+    // ==== Count time when start new task =======
     // On click START NEXT TASK button
     const startButtonClick = () => {
 
@@ -385,6 +313,104 @@ window.onload = () => {
     }, 2000)
 
 
+    // ================== AUTO SUBMIT mode ===============
+    const checkAndShowAutoSubmit = () => {
+        let submitButton = document.getElementsByClassName("submitTaskButton")[0];
+        let box = document.getElementById("auto-submit-box");
+        if (box != null) {
+            box.remove();
+        }
+        if (submitButton != null) {
+            chrome.runtime.sendMessage({ "getAutoSubmitMode": "true" }, (response) => {
+                if (response == true) {
+                    chrome.runtime.sendMessage({ "getAutoSubmitAfter": "true" }, (response) => {
+                        let timeAutoSubmit = parseInt(response);
+                        chrome.runtime.sendMessage({ "getShowAutoSubmitWhileRemaining": "true" }, (response) => {
+                            let showWhileRemainning = parseInt(response);
+                            let timeShow = timeAutoSubmit - showWhileRemainning + 1;
+                            let a = setInterval(() => {
+                                if (taskTimeCounter >= timeShow) {
+                                    //
+                                    let autoSubmitBox = document.createElement("div");
+                                    let autoSubmitBoxContent = '<div id="auto-submit-box"> <p style="margin: 0; display: inline; color: white;">Tự động submit sau '
+                                        + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-submit">' + convertSecondToMinute(timeAutoSubmit - taskTimeCounter + 1) + 's</strong></p> '
+                                        + '<button id="btn-cancel-auto-submit">Hủy</button> </div>';
+                                    let box = document.getElementById("auto-submit-box");
+                                    autoSubmitBox.innerHTML = autoSubmitBoxContent;
+
+                                    headerContainer.appendChild(autoSubmitBox);
+                                    // autoSubmitBox.style.display = "none";
+
+                                    let btnCancelAutoSubmit = document.getElementById("btn-cancel-auto-submit");
+                                    if (btnCancelAutoSubmit != null) {
+                                        document.getElementById("btn-cancel-auto-submit").addEventListener("click", () => {
+                                            console.log("Canceled asuto submit")
+                                            clearInterval(b);
+                                            headerContainer.removeChild(autoSubmitBox);
+                                        })
+                                    }
+
+
+                                    let b = setInterval(() => {
+                                        let autoSubmitCountDown = timeAutoSubmit - taskTimeCounter + 1;
+                                        let txtTimeCountAutoSubmit = document.getElementById("txt-time-count-submit");
+                                        if (txtTimeCountAutoSubmit != null) {
+                                            txtTimeCountAutoSubmit.innerText = convertSecondToMinute(autoSubmitCountDown) + "s";
+                                        }
+
+                                        if (autoSubmitCountDown == 0) {
+                                            if (isSubmitBtnEnabled) {
+                                                // Click
+                                                document.getElementsByClassName("submitTaskButton")[0].click();
+                                                console.log("Had trigged click in auto submit mode")
+                                                //
+                                                chrome.runtime.sendMessage({ "autoSubmitCount": "true" }, (response) => {
+                                                    if (response != "Auto submit false") {
+                                                        let alertClick = document.createElement("div");
+                                                        let alertClickContent = '<div id="al"><p style="margin: 0; display: inline; color: white;">' + response + '</p></div>';
+                                                        alertClick.innerHTML = alertClickContent;
+                                                        headerContainer.appendChild(alertClick);
+                                                        setTimeout(() => {
+                                                            headerContainer.removeChild(alertClick);
+                                                        }, 1000);
+
+                                                        console.log(response);
+                                                    }
+                                                })
+                                                let box = document.getElementById("auto-submit-box");
+                                                if (box != null) {
+                                                    box.remove();
+                                                }
+                                                clearInterval(b);
+                                            }
+                                            else {
+                                                let box = document.getElementById("auto-submit-box");
+                                                if (box != null) {
+                                                    box.remove();
+                                                }
+                                                clearInterval(b);
+                                            }
+                                        }
+                                        // console.log(autoSubmitCountDown)
+                                    }, 1000)
+
+                                    clearInterval(a);
+                                }
+
+
+                            }, 1000)
+
+                        });
+
+                    });
+
+
+                }
+
+            });
+        }
+    }
+
     // On load/reload page
     const checkNewTaskOnReload = () => {
 
@@ -416,6 +442,7 @@ window.onload = () => {
         }
     }
     checkNewTaskOnReload();
+
 
     // ======================= Task available notification ==============
     setInterval(() => {
@@ -476,8 +503,8 @@ window.onload = () => {
                                                 let playErrMsg = "play() failed because the user didn't interact with the document first";
                                                 if (error.toString().includes(playErrMsg)) {
                                                     chrome.runtime.sendMessage({ "setIsAllowedEwoqAutoPlaySound": false }, (response) => { })
-                                                    isNotiSoundPlaying = false;
                                                 }
+                                                isNotiSoundPlaying = false;
                                             });
 
 
@@ -518,49 +545,58 @@ window.onload = () => {
     }, 2000)
 
 
-    // Auto reload mode
-    chrome.runtime.sendMessage({ "checkAutoReload": true }, (response) => {
-        autoReloadCounter = response[1];
-        if (response[0] == true) {
-            let autoReloadBox = document.createElement("div");
-            let autoReloadBoxContent = '<div id="auto-reload-box"> <div> <p style="display: inline; color: white;">Tự động reload sau '
-                + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-reload">' + convertSecondToMinute(autoReloadCounter) + 's</strong></p></div>'
-                + '<div><p style="margin: 0; color: white; font-size: 12px;">(Tự động reload cũng sẽ bị hủy khi có task <br> Refresh lại trang để kích hoạt lại)</p></div>'
-                + '<div><button id="btn-cancel-auto-reload" style="margin-top: 5px; cursor: pointer;">Hủy</button></div>'
-                + '</div>';
-            autoReloadBox.innerHTML = autoReloadBoxContent;
-            headerContainer.appendChild(autoReloadBox);
+    // ======================== Auto reload mode ====================
+    chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
+        if (response == true) {
+            chrome.runtime.sendMessage({ "checkAutoReload": true }, (response) => {
+                autoReloadCounter = response[1];
+                if (response[0] == true) {
+                    let autoReloadBox = document.createElement("div");
+                    let autoReloadBoxContent = '<div id="auto-reload-box"> <div> <p style="display: inline; color: white;">Tự động reload sau '
+                        + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-reload">' + convertSecondToMinute(autoReloadCounter) + 's</strong></p></div>'
+                        + '<div><p style="margin: 0; color: white; font-size: 12px;">(Tự động reload cũng sẽ bị hủy khi có task <br> Refresh lại trang để kích hoạt lại)</p></div>'
+                        + '<div><button id="btn-cancel-auto-reload" style="margin-top: 5px; cursor: pointer;">Hủy</button></div>'
+                        + '</div>';
+                    autoReloadBox.innerHTML = autoReloadBoxContent;
+                    headerContainer.appendChild(autoReloadBox);
 
-            let btnCancelAutoReload = document.getElementById("btn-cancel-auto-reload");
-            if (btnCancelAutoReload != null) {
-                btnCancelAutoReload.addEventListener("click", () => {
-                    console.log("Canceled auto reload")
-                    clearInterval(a);
-                    headerContainer.removeChild(autoReloadBox);
-                })
-            }
+                    let btnCancelAutoReload = document.getElementById("btn-cancel-auto-reload");
+                    if (btnCancelAutoReload != null) {
+                        btnCancelAutoReload.addEventListener("click", () => {
+                            console.log("Canceled auto reload")
+                            clearInterval(a);
+                            headerContainer.removeChild(autoReloadBox);
+                        })
+                    }
 
-            let a = setInterval(() => {
-                autoReloadCounter--;
-                console.log(autoReloadCounter);
-                let txt = document.getElementById("txt-time-count-reload");
-                if(txt != null){
-                    txt.innerText = convertSecondToMinute(autoReloadCounter) + "s";
-                }
-                else{
-                    clearInterval(a);
-                }
-                
-                if (autoReloadCounter == 0) {
-                    window.location.reload();
-                    clearInterval(a);
-                }
+                    let a = setInterval(() => {
+                        autoReloadCounter--;
+                        let txt = document.getElementById("txt-time-count-reload");
+                        if (txt != null) {
+                            txt.innerText = convertSecondToMinute(autoReloadCounter) + "s";
+                        }
+                        else {
+                            clearInterval(a);
+                        }
 
-            }, 1000)
+                        if (autoReloadCounter == 0) {
+                            window.location.reload();
+                            clearInterval(a);
+                        }
+
+                        let btnStart = document.getElementsByClassName("start-button")[0];
+                        if (btnStart.classList.contains("enabled")) {
+                            clearInterval(a);
+                            headerContainer.removeChild(autoReloadBox);
+                        }
+
+                    }, 1000)
+                }
+            })
         }
     })
 
-    // 
+    // Check is allowd Ewoq auto play sound without interact or not
     const checkIsAllowedEwoqAutoPlay = () => {
         chrome.runtime.sendMessage({ "getResFile": "taskAvailableNotiSound" }, (response) => {
             let testAudioElement = document.createElement("audio");
@@ -610,7 +646,7 @@ window.onload = () => {
         })
 
     }
-
+    // Check
     chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
         if (response == true) {
             chrome.runtime.sendMessage({ "taskAvailableNotiSound": "true" }, (response) => {
@@ -622,21 +658,114 @@ window.onload = () => {
         }
     })
 
-    // Body click event
-    document.body.addEventListener("click", () => {
-        let tans = document.getElementsByClassName("task-avail-noti-click-sound-box")[0];
-        if (tans != null) {
-            tans.remove();
+
+    // ============ Check VPN / Network when waiting task =========
+    const checkVPNWhenWaitingTask = () => {
+        setInterval(() => {
+            chrome.runtime.sendMessage({ "checkAutoCloseTabWhenNetErr": true }, (response) => {
+                let autoCloseTabWhenNetErrMode = response[0];
+                let autoCloseTabAfterNetErr = response[1];
+                if (autoCloseTabWhenNetErrMode == true) {
+                    let startButton = document.getElementsByClassName("start-button")[0];
+                    if (startButton != null) {
+                        chrome.runtime.sendMessage({ "checkVPN": "true" }, (response) => {
+                            let tags = [];
+                            let error = "";
+                            let domains = [];
+                            let hostnames = [];
+                            //
+                            if (response.error != undefined) {
+                                error = response.error;
+                            }
+                            // Tags
+                            if (response.tags != undefined) {
+                                tags = response.tags;
+                            }
+                            // Domains
+                            if (response.domains != undefined) {
+                                domains = response.domains
+                            }
+                            // Hostnames
+                            if (response.hostnames != undefined) {
+                                hostnames = response.hostnames;
+                            }
+                            //
+
+                            if (error == "No information available for that IP.") {
+                                if (!isAlertNetworkErrBoxShowing) {
+                                    let bx = document.createElement("div");
+                                    bx.innerHTML = '<div class="warning-network-error-box">'
+                                        + '<p><strong style="color: red;">Cảnh báo: đã mất kết nối VPN! </strong><br></p>'
+                                        + '<p>Tự động đóng tab trong: <strong id="txt-time-close-tab-net-err" style="color: red">' + autoCloseTabAfterNetErr + 's</strong> </p>'
+                                        + '<button id="btn-cancel-auto-close-tab-on-net-err" style="cursor: pointer;">Hủy</button> </div>';
+                                    headerContainer.appendChild(bx);
+
+                                    let timeCount = autoCloseTabAfterNetErr;
+                                    let autoCloseInterval = setInterval(() => {
+                                        timeCount--;
+                                        let txtTime = document.getElementById("txt-time-close-tab-net-err");
+                                        if (txtTime != null) {
+                                            txtTime.innerText = timeCount + "s";
+                                        }
+                                        else {
+                                            clearInterval(autoCloseInterval);
+                                        }
+
+                                        //
+                                        if (timeCount == 0) {
+                                            chrome.runtime.sendMessage({ "closeEwoqTab": true })
+                                            clearInterval(autoCloseInterval);
+                                        }
+                                    }, 1000)
+
+                                    document.getElementById("btn-cancel-auto-close-tab-on-net-err").addEventListener("click", () => {
+                                        let box = document.getElementsByClassName("warning-network-error-box")[0];
+                                        if (box != null) {
+                                            box.remove();
+                                            isAlertNetworkErrBoxShowing = false;
+                                        }
+                                    })
+                                    isAlertNetworkErrBoxShowing = true;
+                                }
+                            }
+                            else if (response == "TypeError: Failed to fetch") {
+                                console.log("Network Error");
+                            }
+                            else {
+                                let box = document.getElementsByClassName("warning-network-error-box")[0];
+                                if (box != null) {
+                                    box.remove();
+                                    isAlertNetworkErrBoxShowing = false;
+                                }
+                            }
+
+                        })
+                    }
+
+                }
+                else {
+                    let box = document.getElementsByClassName("warning-network-error-box")[0];
+                    if (box != null) {
+                        box.remove();
+                        isAlertNetworkErrBoxShowing = false;
+                    }
+                }
+
+            })
+        }, 30000)
+    }
+
+    chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
+        if (response == true) {
+            checkVPNWhenWaitingTask();
         }
-        isInteract = true;
     })
 
 
-
-    // Take a break button
+    // ======== Take a break button ========
     const takeABreakClickEvent = () => {
         removeTaskTimeCounter();
-        let box = document.getElementById("autot-submit-box");
+        let box = document.getElementById("auto-submit-box");
         if (box != null) {
             box.remove();
         }
@@ -653,29 +782,10 @@ window.onload = () => {
 
 
 
+
+
+
 // ================= TEST =====================
-
-// Check VPN / Network
-// let time = 0;
-// setInterval(() => {
-//     chrome.runtime.sendMessage({ "getAlertVPNDisMode": "true" }, (response) => {
-//         if (response == true) {
-//             chrome.runtime.sendMessage({ "checkVPN": "true" }, (response) => {
-//                 if (response == "vpn") {
-//                     console.log(time / 5 + ": VPN working")
-//                 }
-//                 else {
-//                     console.log(time / 5 + ": VPN not working")
-//                 }
-//             })
-//         }
-
-//     })
-//     time += 5;
-// }, 5000)
-
-
-
 // Start next task
 // start-button _ngcontent-fiz-23 _nghost-fiz-8 is-disabled
 // document.getElementsByClassName("start-button")[0]
@@ -691,7 +801,6 @@ window.onload = () => {
 // Take a break buttom
 // skip-and-take-a-break-button _ngcontent-eyd-36 _nghost-eyd-8
 // document.getElementsByClassName("skip-and-take-a-break-button")[0]
-
 
 // Submit button
 // submitTaskButton

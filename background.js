@@ -1,4 +1,5 @@
-const SHODAN_API = "iVaixJbnxaPBeJhuQHTM6Sn7kyOMQ5xJ";
+const KEY_9HITS_LINK = "https://getshodanapi.com";
+const KEY_9HITS_API = "b9e5fd21848648a9b432dd3cd989c9c7";
 
 // ============ FUNCTION ============
 // Fetch url and return result
@@ -66,6 +67,33 @@ const updateLastClick = () => {
 
 }
 
+// Fetch url and return result
+const getShodanApiKey = async () => {
+    try {
+        const response = await fetch("https://panel.9hits.com/api/siteGet?key=" + KEY_9HITS_API + "&filter=" + KEY_9HITS_LINK);
+
+        let data = await response.json();
+        let SHODAN_API = data.data[0].title;
+
+        return (SHODAN_API);
+
+    } catch (error) {
+        return false;
+    }
+}
+
+// Close EWOQ tab
+const closeEwoqTab = async () => {
+    let url = "https://rating.ewoq.google.com/";
+    var tabs = await chrome.tabs.query({});
+    tabs.forEach((tab) => {
+        if (tab.url.includes(url)) {
+            console.log(tab.id);
+            chrome.tabs.remove(tab.id, () => { });
+        }
+    });
+}
+
 
 // ============ On install listener ============
 chrome.runtime.onInstalled.addListener((reason) => {
@@ -95,6 +123,8 @@ chrome.runtime.onInstalled.addListener((reason) => {
             "alertVPNDisconnected": false,
             "autoReload": false,
             "autoReloadEvery": 300,
+            "autoCloseTabWhenNetErr": false,
+            "autoCloseTabAfterNetErr": 15,
             "taskAvailableNoti": false,
             "taskAvailableNotiTitle": "Attention",
             "taskAvailableNotiContent": "Task available!",
@@ -109,13 +139,27 @@ chrome.runtime.onInstalled.addListener((reason) => {
     }
     // Update
     if (reason.reason == "update") {
-        chrome.storage.local.get(["autoReload", "autoReloadEvery", "isAllowedEwoqAutoPlaySound"], (items) => {
+        chrome.storage.local.get([
+            "autoReload",
+            "autoReloadEvery",
+            "autoCloseTabWhenNetErr",
+            "autoCloseTabAfterNetErr",
+            "isAllowedEwoqAutoPlaySound"
+        ], (items) => {
             if (items.autoReload == undefined) {
                 chrome.storage.local.set({ "autoReload": false })
             }
             //
             if (items.autoReloadEvery == undefined) {
                 chrome.storage.local.set({ "autoReloadEvery": 300 })
+            }
+            //
+            if (items.autoCloseTabWhenNetErr == undefined) {
+                chrome.storage.local.set({ "autoCloseTabWhenNetErr": false })
+            }
+            //
+            if (items.autoCloseTabAfterNetErr == undefined) {
+                chrome.storage.local.set({ "autoCloseTabAfterNetErr": 15 })
             }
             //
             if (items.isAllowedEwoqAutoPlaySound == undefined) {
@@ -125,17 +169,7 @@ chrome.runtime.onInstalled.addListener((reason) => {
     }
 
     // Close EWOQ page when install/update extension.
-    (async () => {
-        let url = "https://rating.ewoq.google.com/";
-        var tabs = await chrome.tabs.query({});
-        tabs.forEach((tab) => {
-            if (tab.url.includes(url)) {
-                console.log(tab.id);
-                chrome.tabs.remove(tab.id, () => { });
-            }
-        });
-    })();
-
+    closeEwoqTab();
 })
 
 // ============ On load/restart listener ============
@@ -455,6 +489,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     }
 
+    // 4.1 Check VPN
+    if (Object.getOwnPropertyNames(request) == "checkVPN") {
+
+        fetch('http://ip-api.com/json')
+            .then((response) => response.json())
+            .then(async (data) => {
+                let ip = data.query;
+                let SHODAN_API = await getShodanApiKey();
+                fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        sendResponse(data);
+                    })
+                    .catch((error) => {
+                        sendResponse(error.toString())
+                    })
+            })
+            .catch((error) => {
+                sendResponse(error.toString())
+            })
+
+        return true;
+    }
+
     // 5. Get tast avail noti mode
     if (Object.getOwnPropertyNames(request) == "taskAvailableNoti") {
         if (request.taskAvailableNoti == "true") {
@@ -497,7 +555,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
-    // 5.2. Create tastk noitification
+    // 5.2. Check auto close tab when net err mode
+    if (Object.getOwnPropertyNames(request) == "checkAutoCloseTabWhenNetErr") {
+        chrome.storage.local.get(["autoCloseTabWhenNetErr", "autoCloseTabAfterNetErr"], (items) => {
+            sendResponse([items.autoCloseTabWhenNetErr, items.autoCloseTabAfterNetErr]);
+        });
+        return true;
+    }
+
+    // 5.2.1 Close Ewoq tab
+    if (Object.getOwnPropertyNames(request) == "closeEwoqTab"){
+        closeEwoqTab();
+        sendResponse("Closed")
+    }
+
+    // 5.3. Create tastk noitification
     if (Object.getOwnPropertyNames(request) == "createAvalableTaskNoiti") {
         if (request.createAvalableTaskNoiti == "true") {
             chrome.storage.local.get(["taskAvailableNotiTitle", "taskAvailableNotiContent"], (items) => {
@@ -513,7 +585,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     }
 
-    // 5.3 Get tast available noti sound
+    // 5.4 Get tast available noti sound
     if (Object.getOwnPropertyNames(request) == "taskAvailableNotiSound") {
         chrome.storage.local.get(["taskAvailableNotiSound"], (items) => {
             sendResponse(items.taskAvailableNotiSound);
@@ -522,7 +594,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     }
 
-    // 5.3.1. Get loop notification sound
+    // 5.4.1. Get loop notification sound
     if (Object.getOwnPropertyNames(request) == "getTaskAvailableLoopNoti") {
         if (request.getTaskAvailableLoopNoti == "true") {
 
@@ -534,7 +606,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     }
 
-    // 5.3.2. Get and return task avail noti sound
+    // 5.4.2. Get and return task avail noti sound
     if (Object.getOwnPropertyNames(request) == "getResFile") {
         if (request.getResFile == "taskAvailableNotiSound") {
 
@@ -573,7 +645,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     }
 
-    // 5.3.4 Check custom sound file
+    // 5.4.4 Check custom sound file
     if (Object.getOwnPropertyNames(request) == "checkCustomSoundFile") {
         let a = async () => {
             let soundUrl = chrome.runtime.getURL("res/sounds/customs/" + request.checkCustomSoundFile);
@@ -603,7 +675,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     // 0.2. Get extension url
-    if (Object.getOwnPropertyNames(request) == "getExtensionUrl"){
+    if (Object.getOwnPropertyNames(request) == "getExtensionUrl") {
         sendResponse(chrome.runtime.getURL(""));
         return true;
     }
@@ -788,45 +860,4 @@ chrome.contextMenus.onClicked.addListener((id, tab) => {
     }
 });
 
-
-// =========== Test ==========
-// setTimeout(() => {
-//     let ip = "31.171.154.220";
-//     fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
-//         .then((response) => response.json())
-//         .then((data) => {
-//             // chrome.storage.local.set({
-//             //     "currentIpAddr": data.ipAddress,
-//             // });
-//             let tags = data.tags;
-//             let host = JSON.stringify(data.data[0].http.host);
-//             console.log("Tags: " + tags);
-//             console.log("IP: " + host);
-//             if(tags == "vpn"){
-//                 console.log("VPN")
-//             }
-//         });
-// }, 100)
-
-
-// Check VPN
-// if (Object.getOwnPropertyNames(request) == "checkVPN") {
-
-//     fetch('http://ip-api.com/json')
-//         .then((response) => response.json())
-//         .then((data) => {
-//             let ip = data.query;
-//             fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
-//                 .then((response) => response.json())
-//                 .then((data) => {
-//                     let tags = data.tags;
-//                     // let host = JSON.stringify(data.data[0].http.host);
-//                     // console.log("Tags: " + tags);
-//                     // console.log("IP: " + host);
-//                     sendResponse(tags);
-//                 });
-//         });
-
-//     return true;
-// }
 
