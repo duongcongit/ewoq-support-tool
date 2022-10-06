@@ -550,7 +550,8 @@ window.onload = () => {
         if (response == true) {
             chrome.runtime.sendMessage({ "checkAutoReload": true }, (response) => {
                 autoReloadCounter = response[1];
-                if (response[0] == true) {
+                let btnStart = document.getElementsByClassName("start-button")[0];
+                if (response[0] == true && btnStart != null) {
                     let autoReloadBox = document.createElement("div");
                     let autoReloadBoxContent = '<div id="auto-reload-box"> <div> <p style="display: inline; color: white;">Tự động reload sau '
                         + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-reload">' + convertSecondToMinute(autoReloadCounter) + 's</strong></p></div>'
