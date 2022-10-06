@@ -109,7 +109,7 @@ $(document).ready(() => {
         // Set auto reload select
         let autoReloadSelect = document.getElementById("autoReloadSelect");
         let inHtml = "";
-        for (let i = 1; i <= 15; i++) {
+        for (let i = 5; i <= 15; i++) {
             if (items.autoReloadEvery == i * 60) {
                 inHtml += '<option value="' + i * 60 + '" selected>' + i + ' phút</option>';
             }

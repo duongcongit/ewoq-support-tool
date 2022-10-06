@@ -174,6 +174,10 @@ chrome.runtime.onInstalled.addListener((reason) => {
 
 // ============ On load/restart listener ============
 // Load current when restart extension/browser
+// On start up
+chrome.runtime.onStartup.addListener(function () {
+    console.log("Browser start.")
+})
 setTimeout(() => {
     chrome.storage.local.get([
         "totalClick",
@@ -260,7 +264,7 @@ setTimeout(() => {
 
     });
 
-}, 500)
+}, 400)
 
 
 // ============ On click extension icon listener ============
@@ -491,24 +495,37 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     // 4.1 Check VPN
     if (Object.getOwnPropertyNames(request) == "checkVPN") {
+        let oldIp = request.checkVPN[0];
+        let reason = request.checkVPN[1];
 
         fetch('http://ip-api.com/json')
             .then((response) => response.json())
             .then(async (data) => {
-                let ip = data.query;
-                let SHODAN_API = await getShodanApiKey();
-                fetch('https://api.shodan.io/shodan/host/' + ip + "?key=" + SHODAN_API)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        sendResponse(data);
-                    })
-                    .catch((error) => {
-                        sendResponse(error.toString())
-                    })
+                let currentIp = data.query;
+                if (reason == "First Fetch" || reason == "No VPN connect" || reason == "Network Error" || oldIp == null || (reason == "VPN connecting" && currentIp != oldIp)) {
+                    let SHODAN_API = await getShodanApiKey();
+                    fetch('https://api.shodan.io/shodan/host/' + currentIp + "?key=" + SHODAN_API)
+                        .then((response) => response.json())
+                        .then((data) => {
+                            sendResponse([currentIp, data]);
+                        })
+                        .catch((error) => {
+                            sendResponse(error.toString())
+                        })
+                }
+                else {
+                    sendResponse("Don't need check")
+                }
+
+
+
             })
             .catch((error) => {
                 sendResponse(error.toString())
             })
+
+
+
 
         return true;
     }
@@ -564,7 +581,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     // 5.2.1 Close Ewoq tab
-    if (Object.getOwnPropertyNames(request) == "closeEwoqTab"){
+    if (Object.getOwnPropertyNames(request) == "closeEwoqTab") {
         closeEwoqTab();
         sendResponse("Closed")
     }
@@ -859,5 +876,8 @@ chrome.contextMenus.onClicked.addListener((id, tab) => {
         chrome.tabs.create({ url: "USERGUIDE.html" });
     }
 });
+
+
+
 
 
