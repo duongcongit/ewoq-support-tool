@@ -475,6 +475,7 @@ window.onload = () => {
                             + '<span class="bfirst"></span>'
                             + '<span class="blast"></span>'
                             + '</button>'
+                            + '<div><p style="margin: 0 0 10px 0; color: white; font-size: 12px;">(Tắt thông báo trong 3 phút)</p></div>'
                             + '</div>'
                             + '</div>';
 
@@ -487,7 +488,7 @@ window.onload = () => {
                             isNotiShowing = false;
                             isNotiSoundPlaying = false;
                             audioElement.pause();
-                            notiCountdown = 120; // Stop
+                            notiCountdown = 150; // Stop
                             let a = setInterval(() => {
                                 notiCountdown = notiCountdown - 1;
                                 if (notiCountdown == 0) {
@@ -567,7 +568,7 @@ window.onload = () => {
                             let autoReloadBox = document.createElement("div");
                             let autoReloadBoxContent = '<div id="auto-reload-box"> <div> <p style="display: inline; color: white;">Tự động reload sau '
                                 + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-reload">' + convertSecondToMinute(autoReloadCounter) + 's</strong></p></div>'
-                                + '<div><p style="margin: 0; color: white; font-size: 12px;">(Tự động reload cũng sẽ bị hủy khi có task <br> Refresh lại trang để kích hoạt lại)</p></div>'
+                                + '<div><p style="margin: 0; color: white; font-size: 12px;">(Reload trang sau khi hủy <br> để kích hoạt lại)</p></div>'
                                 + '<div><button id="btn-cancel-auto-reload" style="margin-top: 5px; cursor: pointer;">Hủy</button></div>'
                                 + '</div>';
                             autoReloadBox.innerHTML = autoReloadBoxContent;
