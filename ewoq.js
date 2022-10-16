@@ -11,6 +11,8 @@ window.onload = () => {
     var notiCountdown = 0;
     var isInteract = false;
     var autoReloadCounter = 0;
+    var isAutoReloadCounting = false;
+    var isCanceledAutoReload = false;
     var isAlertNetworkErrBoxShowing = false;
     var isSubmitBtnEnabled = false;
     var isVpnConnected = false;
@@ -323,7 +325,7 @@ window.onload = () => {
         if (box != null) {
             box.remove();
         }
-        setTimeout(()=>{
+        setTimeout(() => {
             if (submitButton != null) {
                 chrome.runtime.sendMessage({ "getAutoSubmitMode": "true" }, (response) => {
                     if (response == true) {
@@ -341,10 +343,10 @@ window.onload = () => {
                                             + '<button id="btn-cancel-auto-submit">Hủy</button> </div>';
                                         let box = document.getElementById("auto-submit-box");
                                         autoSubmitBox.innerHTML = autoSubmitBoxContent;
-    
+
                                         headerContainer.appendChild(autoSubmitBox);
                                         // autoSubmitBox.style.display = "none";
-    
+
                                         let btnCancelAutoSubmit = document.getElementById("btn-cancel-auto-submit");
                                         if (btnCancelAutoSubmit != null) {
                                             document.getElementById("btn-cancel-auto-submit").addEventListener("click", () => {
@@ -353,18 +355,18 @@ window.onload = () => {
                                                 headerContainer.removeChild(autoSubmitBox);
                                             })
                                         }
-    
-    
+
+
                                         let b = setInterval(() => {
                                             let autoSubmitCountDown = timeAutoSubmit - taskTimeCounter + 1;
                                             let txtTimeCountAutoSubmit = document.getElementById("txt-time-count-submit");
                                             if (txtTimeCountAutoSubmit != null) {
                                                 txtTimeCountAutoSubmit.innerText = convertSecondToMinute(autoSubmitCountDown) + "s";
                                             }
-                                            else{
+                                            else {
                                                 clearInterval(b);
                                             }
-    
+
                                             if (autoSubmitCountDown == 0) {
                                                 if (isSubmitBtnEnabled) {
                                                     // Click
@@ -380,7 +382,7 @@ window.onload = () => {
                                                             setTimeout(() => {
                                                                 headerContainer.removeChild(alertClick);
                                                             }, 1000);
-    
+
                                                             console.log(response);
                                                         }
                                                     })
@@ -400,20 +402,20 @@ window.onload = () => {
                                             }
                                             // console.log(autoSubmitCountDown)
                                         }, 1000)
-    
+
                                         clearInterval(a);
                                     }
-    
-    
+
+
                                 }, 1000)
-    
+
                             });
-    
+
                         });
-    
-    
+
+
                     }
-    
+
                 });
             }
         }, 3000)
@@ -554,56 +556,71 @@ window.onload = () => {
 
 
     // ======================== Auto reload mode ====================
-    chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
-        if (response == true) {
-            chrome.runtime.sendMessage({ "checkAutoReload": true }, (response) => {
-                autoReloadCounter = response[1];
-                let btnStart = document.getElementsByClassName("start-button")[0];
-                if (response[0] == true && btnStart != null) {
-                    let autoReloadBox = document.createElement("div");
-                    let autoReloadBoxContent = '<div id="auto-reload-box"> <div> <p style="display: inline; color: white;">Tự động reload sau '
-                        + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-reload">' + convertSecondToMinute(autoReloadCounter) + 's</strong></p></div>'
-                        + '<div><p style="margin: 0; color: white; font-size: 12px;">(Tự động reload cũng sẽ bị hủy khi có task <br> Refresh lại trang để kích hoạt lại)</p></div>'
-                        + '<div><button id="btn-cancel-auto-reload" style="margin-top: 5px; cursor: pointer;">Hủy</button></div>'
-                        + '</div>';
-                    autoReloadBox.innerHTML = autoReloadBoxContent;
-                    headerContainer.appendChild(autoReloadBox);
+    const autoReload = () => {
+        let btnStart = document.getElementsByClassName("start-button")[0];
+        if (btnStart != null && isAutoReloadCounting == false && isCanceledAutoReload == false && !btnStart.classList.contains("enabled")) {
+            chrome.runtime.sendMessage({ "taskAvailableNoti": "true" }, (response) => {
+                if (response == true) {
+                    chrome.runtime.sendMessage({ "checkAutoReload": true }, (response) => {
+                        if (response[0] == true) {
+                            autoReloadCounter = response[1];
+                            let autoReloadBox = document.createElement("div");
+                            let autoReloadBoxContent = '<div id="auto-reload-box"> <div> <p style="display: inline; color: white;">Tự động reload sau '
+                                + '<strong style="color: red;margin-right: 5px;" id="txt-time-count-reload">' + convertSecondToMinute(autoReloadCounter) + 's</strong></p></div>'
+                                + '<div><p style="margin: 0; color: white; font-size: 12px;">(Tự động reload cũng sẽ bị hủy khi có task <br> Refresh lại trang để kích hoạt lại)</p></div>'
+                                + '<div><button id="btn-cancel-auto-reload" style="margin-top: 5px; cursor: pointer;">Hủy</button></div>'
+                                + '</div>';
+                            autoReloadBox.innerHTML = autoReloadBoxContent;
+                            headerContainer.appendChild(autoReloadBox);
 
-                    let btnCancelAutoReload = document.getElementById("btn-cancel-auto-reload");
-                    if (btnCancelAutoReload != null) {
-                        btnCancelAutoReload.addEventListener("click", () => {
-                            console.log("Canceled auto reload")
-                            clearInterval(a);
-                            headerContainer.removeChild(autoReloadBox);
-                        })
-                    }
+                            let btnCancelAutoReload = document.getElementById("btn-cancel-auto-reload");
+                            if (btnCancelAutoReload != null) {
+                                btnCancelAutoReload.addEventListener("click", () => {
+                                    console.log("Canceled auto reload")
+                                    clearInterval(a);
+                                    headerContainer.removeChild(autoReloadBox);
+                                    isCanceledAutoReload = true;
+                                })
+                            }
 
-                    let a = setInterval(() => {
-                        autoReloadCounter--;
-                        let txt = document.getElementById("txt-time-count-reload");
-                        if (txt != null) {
-                            txt.innerText = convertSecondToMinute(autoReloadCounter) + "s";
+                            let a = setInterval(() => {
+                                autoReloadCounter--;
+                                let txt = document.getElementById("txt-time-count-reload");
+                                if (txt != null) {
+                                    txt.innerText = convertSecondToMinute(autoReloadCounter) + "s";
+                                }
+                                else {
+                                    clearInterval(a);
+                                }
+
+                                if (autoReloadCounter == 0) {
+                                    window.location.reload();
+                                    clearInterval(a);
+                                }
+
+                                let btnStart = document.getElementsByClassName("start-button")[0];
+                                if (btnStart != null) {
+                                    if (btnStart.classList.contains("enabled")) {
+                                        clearInterval(a);
+                                        headerContainer.removeChild(autoReloadBox);
+                                        isAutoReloadCounting = false;
+                                    }
+
+                                }
+
+                            }, 1000)
+
+                            //
+                            isAutoReloadCounting = true;
                         }
-                        else {
-                            clearInterval(a);
-                        }
-
-                        if (autoReloadCounter == 0) {
-                            window.location.reload();
-                            clearInterval(a);
-                        }
-
-                        let btnStart = document.getElementsByClassName("start-button")[0];
-                        if (btnStart.classList.contains("enabled")) {
-                            clearInterval(a);
-                            headerContainer.removeChild(autoReloadBox);
-                        }
-
-                    }, 1000)
+                    })
                 }
             })
         }
-    })
+    }
+    //
+    autoReload();
+    setInterval(autoReload, 1000)
 
     // Check is allowd Ewoq auto play sound without interact or not
     const checkIsAllowedEwoqAutoPlay = () => {
