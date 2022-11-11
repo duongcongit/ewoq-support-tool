@@ -12,7 +12,9 @@ const User = new Schema(
     balance: {type: Number},
     status: {type: Number},
     createAt: {type: String},
-    deleteAt: {type: String}
+    deleteAt: {type: String},
+    activeAt: {type: String},
+    activeCode: {type: String}
   }
 );
 

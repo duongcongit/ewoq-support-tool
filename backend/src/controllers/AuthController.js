@@ -3,9 +3,13 @@ import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
 import { promisify } from 'util';
 
+import nodemailer from 'nodemailer';
+import crypto from "crypto-js";
+
 import jwtHelper from '../helpers/JWTHelper.js';
 import User from "../models/User.js";
 import { send } from "process";
+import e from "express";
 
 const SALT_ROUNDS = 10;
 
@@ -13,7 +17,7 @@ const SALT_ROUNDS = 10;
 class AuthController {
 
     // Register
-    userRegister = (req, res) => {
+    register = (req, res) => {
         let username = req.body.username.toLowerCase();
         let email = req.body.email;
 
@@ -27,15 +31,17 @@ class AuthController {
                             else {
                                 let hashPassword = bcrypt.hashSync(req.body.password, SALT_ROUNDS);
                                 let accountInfo = {
-                                    username: req.body.username,
+                                    username: username,
                                     password: hashPassword,
                                     name: req.body.name,
-                                    email: req.body.email,
+                                    email: email,
                                     accountPackage: 0,
                                     balance: 0,
-                                    status: 1,
+                                    status: 0,
                                     createAt: DateTime.utc().toISO(),
                                     deleteAt: null,
+                                    activeAt: null,
+                                    activeCode: null
 
                                 };
                                 let account = new User(accountInfo);
@@ -50,13 +56,12 @@ class AuthController {
             })
 
 
-
         //
 
     }
 
     // Login
-    userLogin = (req, res) => {
+    login = (req, res) => {
 
         let accessTokenLife = process.env.ACCESS_TOKEN_LIFE;
         let accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
@@ -65,25 +70,37 @@ class AuthController {
         let refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
 
         let username = req.body.username.toLowerCase();
+
         User.findOne({ username: username })
             .then(acc => {
                 if (acc) {
                     bcrypt.compare(req.body.password, acc.password, async (err, result) => {
                         if (result) {
                             //
-                            let dataForToken = {
-                                username: acc.username,
-                            };
-                            //
-                            try {
-                                let accessToken = await jwtHelper.generateUserToken(dataForToken, accessTokenSecret, accessTokenLife);
-                                //
-                                let refreshToken = await jwtHelper.generateUserToken(dataForToken, refreshTokenSecret, refreshTokenLife);
-                                //
-                                return res.status(200).json({ accessToken, refreshToken });
+                            if (acc.status == 0) {
+                                return res.status(401).json({ Error: "Account not activated" })
                             }
-                            catch (error) {
-                                return res.status(500).json(error);
+                            else if (acc.status == -1) {
+                                return res.status(401).json({ Error: "Account has been deleted" })
+                            }
+                            else if (acc.status == -2) {
+                                return res.status(401).json({ Error: "Account has been locked" })
+                            }
+                            else {
+                                let dataForToken = {
+                                    username: acc.username,
+                                };
+                                //
+                                try {
+                                    let accessToken = await jwtHelper.generateUserToken(dataForToken, accessTokenSecret, accessTokenLife);
+                                    //
+                                    let refreshToken = await jwtHelper.generateUserToken(dataForToken, refreshTokenSecret, refreshTokenLife);
+                                    //
+                                    return res.status(200).json({ accessToken, refreshToken });
+                                }
+                                catch (error) {
+                                    return res.status(500).json(error);
+                                }
                             }
 
                         }
@@ -99,7 +116,7 @@ class AuthController {
     }
 
     //
-    resfreshUserToken = async (req, res) => {
+    resfreshToken = async (req, res) => {
         let accessTokenLife = process.env.ACCESS_TOKEN_LIFE;
         let accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
 
@@ -151,10 +168,106 @@ class AuthController {
 
     }
 
-    // Device login
-    deviceLogin = (req, res) => {
-        
+    // Send email
+    sendEmailActive = (req, res) => {
+
+        let email = req.body.email;
+        let username = req.body.username;
+
+        User.findOne({ email: email, username: username })
+            .then(user => {
+                if (user) {
+
+                    let linkVerify = "";
+
+                    let emailHash = crypto.MD5(email).toString()
+                    let usernameHash = crypto.MD5(username).toString()
+                    let createAtHash = crypto.MD5(user.createAt).toString()
+                    let codeRandom = '';
+                    let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                    for (var i = 0; i < 6; i++) {
+                        codeRandom += characters.charAt(Math.floor(Math.random() * characters.length));
+                    }
+
+                    linkVerify = emailHash + codeRandom + usernameHash + createAtHash;
+                    //
+                    User.findOneAndUpdate({ username: username }, { activeLink: linkVerify })
+                        .then(() => {
+                            //
+                            let mailContent = "<h1>Hello</h1>Follow this link to active your account: " + process.env.SITE_URL + "auth/active/" + linkVerify;
+                            //
+                            var transporter = nodemailer.createTransport({
+                                service: 'gmail',
+                                auth: {
+                                    user: process.env.EMAIL_FROM,
+                                    pass: process.env.EMAIL_FROM_PASSWORD
+                                }
+                            });
+
+                            var mailOptions = {
+                                from: "EWOQ Task Support Tool <" + process.env.EMAIL_FROM + ">",
+                                to: email,
+                                subject: 'Active account',
+                                html: mailContent
+                            };
+
+                            transporter.sendMail(mailOptions, function (error, info) {
+                                if (error) {
+                                    res.send(error);
+                                } else {
+                                    res.send('Email sent: ' + info.response);
+                                }
+                            });
+                        })
+
+
+
+
+                }
+                else {
+                    res.json({
+                        Error: "User not found."
+                    })
+                }
+            })
+
+
+
+
+
+        return;
+
     }
+
+    // Active
+    activeAccount = (req, res) => {
+        let activeCode = req.body.activeCode;
+        User.findOne({ activeCode: activeCode })
+            .then(user => {
+                if (user) {
+                    if (user.status == 0 && user.activeAt == null) {
+                        User.findOneAndUpdate({ username: user.username }, { status: 1, activeAt: DateTime.utc().toISO() })
+                            .then(() => {
+                                return res.status(200).json({
+                                    Message: "Account activated successfully."
+                                })
+                            })
+                    }
+                    else{
+                        return res.status(401).json({
+                            Error: "Account has been activated before."
+                        })
+                    }
+
+                }
+                else {
+                    return res.status(401).json({
+                        Error: "User not found."
+                    })
+                }
+            })
+    }
+
 
 
 
