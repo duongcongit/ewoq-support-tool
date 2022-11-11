@@ -1,0 +1,56 @@
+[{
+  "_id": {
+    "$oid": "6365054deeebc7b5f5543b21"
+  },
+  "package": 0,
+  "name": "Package 0",
+  "priceVND": 0,
+  "priceUSD": 0,
+  "numOfDevices": 0,
+  "description": "No access",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "636507ad925e0db6184ccb1a"
+  },
+  "package": 1,
+  "name": "Package 1",
+  "priceVND": 70000,
+  "priceUSD": 2.8,
+  "numOfDevices": 1,
+  "description": "1 device(s)",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "636507b55944a5be7467e03c"
+  },
+  "package": 2,
+  "name": "Package 2",
+  "priceVND": 190000,
+  "priceUSD": 7.64,
+  "numOfDevices": 3,
+  "description": "3 device(s)",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "636507bcb32c6e7a718a6a8f"
+  },
+  "package": 3,
+  "name": "Package 3",
+  "priceVND": 300000,
+  "priceUSD": 12.06,
+  "numOfDevices": 5,
+  "description": "5 device(s)",
+  "__v": 0
+},{
+  "_id": {
+    "$oid": "636507c2b6b53930e5551530"
+  },
+  "package": 4,
+  "name": "Package 4",
+  "priceVND": 550000,
+  "priceUSD": 22.11,
+  "numOfDevices": 10,
+  "description": "10 device(s)",
+  "__v": 0
+}]
