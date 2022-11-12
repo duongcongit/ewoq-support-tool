@@ -8,7 +8,7 @@ const User = new Schema(
     username: { type: String},
     password: {type: String},
     email: {type: String},
-    accountType: {type: Number},
+    accountPackage: {type: Number},
     balance: {type: Number},
     status: {type: Number},
     createAt: {type: String},

@@ -6,7 +6,7 @@ const Device = new Schema(
   {
     username: {type: String},
     name: { type: String },
-    browerUserAgent: {type: String},
+    browserUserAgent: {type: String},
     submitHistory: {type: Object},
     timeWorkHistory: {type: Object}
   }

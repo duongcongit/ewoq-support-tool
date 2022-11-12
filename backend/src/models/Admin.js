@@ -6,8 +6,7 @@ const Admin = new Schema(
   {
     name: { type: String },
     username: { type: String},
-    password: {type: String},
-    adminAPIKey: {type: String}
+    password: {type: String}
   }
 );
 

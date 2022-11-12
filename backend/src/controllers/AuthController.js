@@ -1,20 +1,64 @@
 import { DateTime } from "luxon";
 import bcrypt from "bcrypt";
-import jwt from 'jsonwebtoken';
-import { promisify } from 'util';
-
 import nodemailer from 'nodemailer';
 import crypto from "crypto-js";
 
 import jwtHelper from '../helpers/JWTHelper.js';
+
+import Admin from "../models/Admin.js";
 import User from "../models/User.js";
-import { send } from "process";
-import e from "express";
+import Device from "../models/Device.js";
+
+import AuthMiddleWare from '../middleware/AuthMiddleware.js';
 
 const SALT_ROUNDS = 10;
 
 
 class AuthController {
+
+    // Admin
+    loginAdmin = (req, res) => {
+
+        let adminAccessTokenLife = process.env.ADMIN_ACCESS_TOKEN_LIFE;
+        let adminAccessTokenSecret = process.env.ADMIN_ACCESS_TOKEN_SECRET;
+
+        let adminRefreshTokenLife = process.env.ADMIN_REFRESH_TOKEN_LIFE;
+        let adminRefreshTokenSecret = process.env.ADMIN_REFRESH_TOKEN_SECRET;
+
+        let username = req.body.username.toLowerCase();
+
+        Admin.findOne({ username: username })
+            .then(acc => {
+                if (acc) {
+                    bcrypt.compare(req.body.password, acc.password, async (err, result) => {
+                        if (result) {
+                            let dataForToken = {
+                                username: acc.username,
+                                name: acc.name
+                            };
+                            //
+                            try {
+                                let accessToken = await jwtHelper.generateToken(dataForToken, adminAccessTokenSecret, adminAccessTokenLife);
+                                //
+                                let refreshToken = await jwtHelper.generateToken(dataForToken, adminRefreshTokenSecret, adminRefreshTokenLife);
+                                //
+                                return res.status(200).json({ accessToken, refreshToken });
+                            }
+                            catch (error) {
+                                return res.status(500).json(error);
+                            }
+
+                        }
+                        else {
+                            res.status(401).send("Wrong password");
+                        }
+                    })
+                }
+                else {
+                    res.status(401).send("Not found username!");
+                }
+            })
+    }
 
     // Register
     register = (req, res) => {
@@ -92,9 +136,9 @@ class AuthController {
                                 };
                                 //
                                 try {
-                                    let accessToken = await jwtHelper.generateUserToken(dataForToken, accessTokenSecret, accessTokenLife);
+                                    let accessToken = await jwtHelper.generateToken(dataForToken, accessTokenSecret, accessTokenLife);
                                     //
-                                    let refreshToken = await jwtHelper.generateUserToken(dataForToken, refreshTokenSecret, refreshTokenLife);
+                                    let refreshToken = await jwtHelper.generateToken(dataForToken, refreshTokenSecret, refreshTokenLife);
                                     //
                                     return res.status(200).json({ accessToken, refreshToken });
                                 }
@@ -134,7 +178,7 @@ class AuthController {
                         if (acc) {
                             //
                             let dataForToken = {
-                                username: acc.username,
+                                username: acc.username
                             };
                             //
                             try {
@@ -270,6 +314,7 @@ class AuthController {
 
     // Device login
     deviceLogin = async (req, res) => {
+
         let deviceAccessTokenLife = process.env.DEVICE_ACCESS_TOKEN_LIFE;
         let deviceAccessTokenSecret = process.env.DEVICE_ACCESS_TOKEN_SECRET;
 
@@ -277,13 +322,15 @@ class AuthController {
         let deviceRefreshTokenSecret = process.env.DEVICE_REFRESH_TOKEN_SECRET;
 
         let username = req.body.username.toLowerCase();
+        let deviceName = req.body.deviceName;
+        let browserUserAgent = req.body.browserUserAgent;
 
         User.findOne({ username: username })
             .then(acc => {
                 if (acc) {
                     bcrypt.compare(req.body.password, acc.password, async (err, result) => {
                         if (result) {
-                            //
+                            // Check account status
                             if (acc.status == 0) {
                                 return res.status(401).json({ Error: "Account not activated" })
                             }
@@ -294,20 +341,44 @@ class AuthController {
                                 return res.status(401).json({ Error: "Account has been locked" })
                             }
                             else {
+
+                                if (acc.accountPackage == 0) {
+                                    return res.status(401).json({ Error: "Account package 0." })
+                                }
+
                                 let dataForToken = {
                                     username: acc.username,
+                                    deviceName: deviceName
                                 };
+
+                                let deviceInfo = {
+                                    username: acc.username,
+                                    name: deviceName,
+                                    browserUserAgent: browserUserAgent,
+                                    submitHistory: null,
+                                    timeWorkHistory: null
+                                }
+
+                                AuthMiddleWare.checkExtensionLoginSession(req, res, () => {
+                                    let device = new Device(deviceInfo);
+                                    // Add device
+                                    device.save()
+                                        .then(async () => {
+                                            // Create token
+                                            try {
+
+                                                let accessToken = await jwtHelper.generateToken(dataForToken, deviceAccessTokenSecret, deviceAccessTokenLife);
+                                                //
+                                                let refreshToken = await jwtHelper.generateToken(dataForToken, deviceRefreshTokenSecret, deviceRefreshTokenLife);
+                                                //
+                                                return res.status(200).json({ accessToken, refreshToken });
+                                            }
+                                            catch (error) {
+                                                return res.status(500).json(error);
+                                            }
+                                        })
+                                });
                                 //
-                                try {
-                                    let accessToken = await jwtHelper.generateUserToken(dataForToken, deviceAccessTokenSecret, deviceAccessTokenLife);
-                                    //
-                                    let refreshToken = await jwtHelper.generateUserToken(dataForToken, deviceRefreshTokenSecret, deviceRefreshTokenLife);
-                                    //
-                                    return res.status(200).json({ accessToken, refreshToken });
-                                }
-                                catch (error) {
-                                    return res.status(500).json(error);
-                                }
                             }
 
                         }
@@ -323,9 +394,6 @@ class AuthController {
 
 
     }
-
-
-
 
 
 }

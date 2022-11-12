@@ -5,15 +5,11 @@ import { resolve } from "path";
 
 class JWTHelper {
     
-    generateUserToken = async (user, secretSignature, tokenLife) => {
+    generateToken = async (tokenData, secretSignature, tokenLife) => {
         return new Promise((resolve, reject) => {
-            let userData = {
-                username: user.username,
-                name: user.name
-            }
     
             jwt.sign(
-                { data: userData },
+                { data: tokenData },
                 secretSignature,
                 {
                     algorithm: "HS256",
@@ -27,7 +23,6 @@ class JWTHelper {
         });
     
     }
-    
     
     verifyToken = (token, secretKey) => {
         return new Promise((resolve, reject) => {

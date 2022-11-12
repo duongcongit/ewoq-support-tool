@@ -5,9 +5,13 @@ import AuthMiddleWare from '../middleware/AuthMiddleware.js';
 import UserController from '../controllers/UserController.js';
 
 router.use(AuthMiddleWare.isAuth);
-router.get('/get-all-users', UserController.getAllUsers)
-router.put('/update-user', UserController.updateUser)
+
 router.delete('/soft-delete-user', UserController.softDeleteUser)
-router.delete('/delete-user', UserController.deleteUser)
+
+// Manage device
+router.post('/get-all-devices', UserController.getAllDevices)
+router.post('/get-a-device', UserController.getADevice)
+router.put('/update-device', UserController.updateDevice)
+router.delete('/delete-device', UserController.deleteDevice)
 
 export default router;
