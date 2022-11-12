@@ -69,9 +69,9 @@ class AuthController {
         let refreshTokenLife = process.env.REFRESH_TOKEN_LIFE;
         let refreshTokenSecret = process.env.REFRESH_TOKEN_SECRET;
 
-        let username = req.body.username.toLowerCase();
+        let email = req.body.email.toLowerCase();
 
-        User.findOne({ username: username })
+        User.findOne({ email: email })
             .then(acc => {
                 if (acc) {
                     bcrypt.compare(req.body.password, acc.password, async (err, result) => {
@@ -185,7 +185,7 @@ class AuthController {
                     let createAtHash = crypto.MD5(user.createAt).toString()
                     let codeRandom = '';
                     let characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                    for (var i = 0; i < 6; i++) {
+                    for (var i = 0; i < 10; i++) {
                         codeRandom += characters.charAt(Math.floor(Math.random() * characters.length));
                     }
 
@@ -253,7 +253,7 @@ class AuthController {
                                 })
                             })
                     }
-                    else{
+                    else {
                         return res.status(401).json({
                             Error: "Account has been activated before."
                         })
@@ -266,6 +266,62 @@ class AuthController {
                     })
                 }
             })
+    }
+
+    // Device login
+    deviceLogin = async (req, res) => {
+        let deviceAccessTokenLife = process.env.DEVICE_ACCESS_TOKEN_LIFE;
+        let deviceAccessTokenSecret = process.env.DEVICE_ACCESS_TOKEN_SECRET;
+
+        let deviceRefreshTokenLife = process.env.DEVICE_REFRESH_TOKEN_LIFE;
+        let deviceRefreshTokenSecret = process.env.DEVICE_REFRESH_TOKEN_SECRET;
+
+        let username = req.body.username.toLowerCase();
+
+        User.findOne({ username: username })
+            .then(acc => {
+                if (acc) {
+                    bcrypt.compare(req.body.password, acc.password, async (err, result) => {
+                        if (result) {
+                            //
+                            if (acc.status == 0) {
+                                return res.status(401).json({ Error: "Account not activated" })
+                            }
+                            else if (acc.status == -1) {
+                                return res.status(401).json({ Error: "Account has been deleted" })
+                            }
+                            else if (acc.status == -2) {
+                                return res.status(401).json({ Error: "Account has been locked" })
+                            }
+                            else {
+                                let dataForToken = {
+                                    username: acc.username,
+                                };
+                                //
+                                try {
+                                    let accessToken = await jwtHelper.generateUserToken(dataForToken, deviceAccessTokenSecret, deviceAccessTokenLife);
+                                    //
+                                    let refreshToken = await jwtHelper.generateUserToken(dataForToken, deviceRefreshTokenSecret, deviceRefreshTokenLife);
+                                    //
+                                    return res.status(200).json({ accessToken, refreshToken });
+                                }
+                                catch (error) {
+                                    return res.status(500).json(error);
+                                }
+                            }
+
+                        }
+                        else {
+                            res.status(401).send("Wrong password");
+                        }
+                    })
+                }
+                else {
+                    res.status(401).send("Not found user!");
+                }
+            })
+
+
     }
 
 
