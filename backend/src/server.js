@@ -12,9 +12,10 @@ const port = process.env.PORT || 3000;
 import route from "./routes/index.js";
 import db from "./config/db/index.js";
 
+app.use(express.static(path.join(__dirname, 'build')))
 
 app.get('/', (req, res)=>{
-    res.send("APP IS RUNNING")
+    res.sendFile(path.join(__dirname, 'build', 'index.html'))
 })
 
 route(app)

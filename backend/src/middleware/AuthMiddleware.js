@@ -9,7 +9,7 @@ class AuthMiddleWare {
     // Amin
     isAdminAuth = async (req, res, next) => {
         const AdminAccessTokenSecret = process.env.ADMIN_ACCESS_TOKEN_SECRET;
-        const AdminTokenFromClient = req.body.token || req.query.token || req.headers["access-token"];
+        const AdminTokenFromClient = req.body.token || req.query.token || req.headers["access_token"];
 
         if (AdminTokenFromClient) {
             try {

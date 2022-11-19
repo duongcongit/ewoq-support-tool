@@ -3,7 +3,8 @@ const router = express.Router();
 import AdminController from '../controllers/AdminController.js';
 import AuthMiddleWare from '../middleware/AuthMiddleware.js';
 
-router.use(AuthMiddleWare.isAdminAuth)
+// router.use(AuthMiddleWare.isAdminAuth)
+
 // Manage Admin
 router.get('/get-all-admins', AdminController.getAllAdmins)
 router.post('/add-admin', AdminController.addAdmin)

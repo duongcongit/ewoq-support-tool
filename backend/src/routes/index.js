@@ -8,6 +8,13 @@ import extensionRouter from './ExtensionRouter.js';
 
 const initAPIRoute = (app) => {
 
+
+    app.use('/', function (req, res, next) {
+        res.header("Access-Control-Allow-Origin", "*");
+        res.header("Access-Control-Allow-Headers", "X-Requested-With");
+        next()
+    });
+
     app.use(express.urlencoded({ extended: true }));
     app.use(express.json());
     app.use(express.text());
@@ -16,7 +23,7 @@ const initAPIRoute = (app) => {
     app.use('/api/admin', adminRouter)
     app.use('/api/users', userRouter);
     app.use('/api/extension', extensionRouter);
-    
+
 
 }
 
